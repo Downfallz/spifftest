@@ -194,26 +194,163 @@ public class T5RI3Generator
                             ["codTypeMetadonneeDocument"] = "codSousTypeDocument",
                             ["valMetadonneeDocument"] = isQc ? "T5RL3" : "T5"
                         }
-                    },
-                    ["cases"] = BuildCases(numTransit, numCompte, case13, caseD, isQc, devise)
+                    }
                 }
-            }
+            },
+            ["content"] = BuildCases(numTransit, numCompte, case13, caseD, isQc)
         };
 
         return root;
     }
 
-    // TODO: À compléter dans le prochain prompt
     private object BuildOrganisation(
         string numTransit, string numCompte, string province, bool isQc, string langue, string pays, string typImpression, bool holdMail, string devise,
         string case13, string caseD)
     {
-        throw new NotImplementedException();
+        int genre = RandomUtils.RandomChoice(rng, vals: Constants.TYPES_ORGANISATION);
+        string neq = RandomUtils.GenerateNEQ(rng, genre);
+        string fid = RandomUtils.FixedDigits(rng, length: 9);
+        string nl = RandomUtils.GenerateAccount(rng);
+
+        string nom = faker.Company.CompanyName().ToUpperInvariant().Replace(",", "");
+
+        var identification = new List<object>
+        {
+            new Dictionary<string, object>
+            {
+                ["idCodTypeIdentificationPartie"] = 4,
+                ["numIdentificationPartie"] = numTransit + numCompte
+            }
+        };
+
+        var documents = new List<object>
+        {
+            new Dictionary<string, object>
+            {
+                ["metadonneesDocument"] = new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        ["codTypeMetadonneeDocument"] = "numIdentifiantInstitution",
+                        ["valMetadonneeDocument"] = numTransit.Substring(startIndex: 0, length: 3)
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["codTypeMetadonneeDocument"] = "numIdentifiantTransit",
+                        ["valMetadonneeDocument"] = numTransit.Substring(3)
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["codTypeMetadonneeDocument"] = "numIdentifiantFolio",
+                        ["valMetadonneeDocument"] = numCompte.PadLeft(totalWidth: 7, paddingChar: '0')
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["codTypeMetadonneeDocument"] = "codSousTypeDocument",
+                        ["valMetadonneeDocument"] = isQc ? "T5RL3" : "T5"
+                    },
+                }
+            }
+        };
+
+        if (genre == 3 || genre == 5)
+        {
+            identification.Add(new Dictionary<string, object>
+            {
+                ["idCodTypeIdentificationPartie"] = 2, // NE
+                ["numIdentificationPartie"] = neq
+            });
+        }
+
+        if (isQc)
+        {
+            identification.Add(new Dictionary<string, object>
+            {
+                ["idCodTypeIdentificationPartie"] = 6, // NEQ
+                ["numIdentificationPartie"] = neq
+            });
+        }
+        else if (genre == 4)
+        {
+            // Ajoute PDO pour fichier
+            ((List<object>)((Dictionary<string, object>)documents[0])["metadonneesDocument"])
+                .Add(new Dictionary<string, object>
+                {
+                    ["codTypeMetadonneeDocument"] = "numIdentifiantPDO",
+                    ["valMetadonneeDocument"] = RandomUtils.FixedDigits(rng, length: 11)
+                });
+        }
+
+        identification.Add(new Dictionary<string, object>
+        {
+            ["idCodTypeIdentificationPartie"] = 8, // FID
+            ["numIdentificationPartie"] = fid
+        });
+
+        if (isQc)
+        {
+            identification.Add(new Dictionary<string, object>
+            {
+                ["idCodTypeIdentificationPartie"] = 7, // NZ
+                ["numIdentificationPartie"] = nl
+            });
+        }
+
+        var root = new Dictionary<string, object>
+        {
+            ["information"] = new Dictionary<string, object>
+            {
+                ["codeFormulaire"] = isQc ? "T5RL3" : "T5",
+                ["codeAnnee"] = cfg.AnneeProduction,
+                ["codeSuppression"] = "N",
+                ["typImpression"] = typImpression,
+                ["holdMailIndicateur"] = holdMail,
+                ["numIdentification"] = numTransit,
+                ["identificationLegale"] = nom,
+                ["parties"] = identification,
+            },
+            new Dictionary<string, object>
+            {
+                ["idCodTypeIdentificationPartie"] = 2,
+                ["adressePostale"] = new Dictionary<string, object>
+                {
+                    ["nomRue"] = faker.Address.StreetName().ToUpperInvariant(),
+                    ["nomMunicipalite"] = faker.Address.City().ToUpperInvariant(),
+                    ["secondaryAddress"] = faker.Address.SecondaryAddress().ToUpperInvariant(),
+                    ["codeProvince"] = province,
+                    ["codePaysIso"] = pays,
+                    ["numCodePostal"] = RandomUtils.GenerateCanadianPostalCode(rng, province).Replace(" ", ""),
+                }
+            },
+            ["indicateurAdresseFiscalePostalIdentique"] = true,
+            ["documents"] = documents,
+            ["content"] = BuildCases(numTransit, numCompte, case13, caseD, isQc),
+        };
+
+        return root;
     }
 
-    // TODO: À compléter dans le prochain prompt
-    private object BuildCases(string numTransit, string numCompte, string case13, string caseD, bool isQc, string devise)
+    private List<object> BuildCases(string transit, string compte, string case13, string caseD, bool isQc)
     {
-        throw new NotImplementedException();
+        var cases = new List<object>
+        {
+            new Dictionary<string, object> { ["case"] = "13", ["valeur"] = case13 },
+            new Dictionary<string, object> { ["case"] = "2B", ["valeur"] = transit },
+            new Dictionary<string, object> { ["case"] = "28", ["valeur"] = compte },
+        };
+
+        if (isQc)
+        {
+            cases.Add(new Dictionary<string, object> { ["case"] = "D", ["valeur"] = caseD });
+            cases.Add(new Dictionary<string, object> { ["case"] = "Succ", ["valeur"] = transit });
+        }
+
+        return cases;
+    }
+
+    private void PrintProgress(int current, int total)
+    {
+        double pct = current / (double)total * 100.0;
+        Console.WriteLine($"Progress: {current}/{total} ({pct:F2}%)");
     }
 }
