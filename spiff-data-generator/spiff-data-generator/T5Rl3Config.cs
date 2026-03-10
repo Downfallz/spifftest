@@ -1,4 +1,4 @@
-public class T5RI3Config
+public class T5Rl3Config
 {
     public string Plateforme { get; set; } = "SPIFF";
     public string CodeSysteme { get; set; } = "D10815";

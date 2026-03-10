@@ -2,10 +2,14 @@ namespace spiff_data_generator;
 
 public static class Constants
 {
-    public static readonly int[] TYPES_ORGANISATION = { 3, 4, 5, 1 };
+    public static readonly int[] TYPES_ORGANISATION = { 3, 4, 5 };
 
     public static readonly Dictionary<string, string> NEQ_ENTITES_JURIDIQUES = new()
     {
+        ["1"] = "11",
+        ["4"] = "22",
+        ["3"] = "33",
+        ["5"] = "88"
     };
 
     public static readonly string[] NUMEROS_INSTITUTION_TRANSIT =

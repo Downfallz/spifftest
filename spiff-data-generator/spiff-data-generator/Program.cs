@@ -12,11 +12,11 @@ public static class Program
             .AddJsonFile(path: "appsettings.json", optional: false, reloadOnChange: false)
             .Build();
 
-        var cfg = configuration.GetSection(key: "T5RI3").Get<T5RI3Config>() ?? new T5RI3Config();
+        var cfg = configuration.GetSection(key: "T5Rl3").Get<T5Rl3Config>() ?? new T5Rl3Config();
 
         // 2) Seed Bogus + RNG
         Randomizer.Seed = new Random(cfg.Seed);
-        var generator = new T5RI3Generator(cfg);
+        var generator = new T5Rl3Generator(cfg);
 
         // 3) Générer vers fichier (ZIP en streaming)
         generator.GenerateToFile();

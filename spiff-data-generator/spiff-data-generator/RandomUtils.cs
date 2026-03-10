@@ -117,7 +117,7 @@ public static class RandomUtils
         return $"{prefix}{block}{check}";
     }
 
-    public static string GenerateAccount(Random rng)
+    public static string GenerateNI(Random rng)
     {
         string block = FixedDigits(rng, length: 9);
         int[] f = { 4, 3, 2, 7, 6, 5, 4, 3, 2 };
@@ -125,7 +125,7 @@ public static class RandomUtils
         for (int i = 0; i < 9; i++)
             sum += (block[i] - '0') * f[i];
         int r = sum % 11;
-        int check = (r == 0) ? 0 : (r == 1) ? 0 : 11 - r;
+        int check = (r == 0) ? 1 : (r == 1) ? 0 : 11 - r;
         return block + check.ToString(CultureInfo.InvariantCulture);
     }
 }
