@@ -112,15 +112,50 @@ public class T5Rl3Generator
         string case13 = RandomUtils.RandomDecimal(rng, minLeft: 1, maxLeft: 8, decimals: 2);
         string caseD = RandomUtils.RandomDecimal(rng, minLeft: 1, maxLeft: 8, decimals: 2);
 
+        Dictionary<string, object> root;
         if (isIndividu)
-            return BuildIndividu(numTransit, numCompte, province, isQc, langue, pays, typImpression, holdMail, devise,
+            root = BuildIndividu(numTransit, numCompte, province, isQc, langue, pays, typImpression, holdMail, devise,
+                case13, caseD);
+        else
+            root = BuildOrganisation(numTransit, numCompte, province, isQc, langue, pays, typImpression, holdMail, devise,
                 case13, caseD);
 
-        return BuildOrganisation(numTransit, numCompte, province, isQc, langue, pays, typImpression, holdMail, devise,
-            case13, caseD);
+        // Appliquer anomalie si configurée
+        var anomaly = GetAnomalyForSeq(seq);
+        if (anomaly != null)
+            AnomalyApplicator.Apply(root, anomaly, isIndividu);
+
+        return root;
     }
 
-    private object BuildIndividu(
+    private string? GetAnomalyForSeq(int seq)
+    {
+        if (!cfg.Anomalies.Enabled) return null;
+
+        int anomalyStart = cfg.NombreLignes - TotalAnomalyCount + 1;
+        if (seq < anomalyStart) return null;
+
+        int offset = seq - anomalyStart;
+        foreach (var level in new[] { cfg.Anomalies.Bloquant, cfg.Anomalies.Importante, cfg.Anomalies.SevereImpression, cfg.Anomalies.Avertissement })
+        {
+            if (level.Nombre <= 0 || level.Types.Length == 0) continue;
+
+            if (offset < level.Nombre)
+                return level.Types[offset % level.Types.Length];
+
+            offset -= level.Nombre;
+        }
+
+        return null;
+    }
+
+    private int TotalAnomalyCount =>
+        cfg.Anomalies.Bloquant.Nombre
+        + cfg.Anomalies.Importante.Nombre
+        + cfg.Anomalies.SevereImpression.Nombre
+        + cfg.Anomalies.Avertissement.Nombre;
+
+    private Dictionary<string, object> BuildIndividu(
         string numTransit, string numCompte, string province, bool isQc, string langue, string pays, string typImpression, bool holdMail, string devise,
         string case13, string caseD)
     {
@@ -220,7 +255,7 @@ public class T5Rl3Generator
         return root;
     }
 
-    private object BuildOrganisation(
+    private Dictionary<string, object> BuildOrganisation(
         string numTransit, string numCompte, string province, bool isQc, string langue, string pays, string typImpression, bool holdMail, string devise,
         string case13, string caseD)
     {

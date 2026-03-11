@@ -25,6 +25,8 @@ public class T5Rl3Config
     public string OutputDir { get; set; } = "out/T5RL3";
     public bool PrettyPrint { get; set; } = true;
 
+    public AnomalyConfig Anomalies { get; set; } = new();
+
     public string GetOutputPrefix() =>
         $"{Plateforme}_{CodeSysteme}_{TypeDeclaration}_{CycleProduction}_{AnneeProduction}";
 }
