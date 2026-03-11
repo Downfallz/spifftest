@@ -1,16 +1,16 @@
 namespace spiff_data_generator;
 
-public class AnomalyConfig
+public sealed class AnomalyConfig
 {
-    public bool Enabled { get; set; } = false;
+    public bool Enabled { get; set; }
     public AnomalyLevelConfig Bloquant { get; set; } = new();
     public AnomalyLevelConfig Importante { get; set; } = new();
     public AnomalyLevelConfig SevereImpression { get; set; } = new();
     public AnomalyLevelConfig Avertissement { get; set; } = new();
 }
 
-public class AnomalyLevelConfig
+public sealed class AnomalyLevelConfig
 {
-    public int Nombre { get; set; } = 0;
-    public string[] Types { get; set; } = [];
+    public int Nombre { get; set; }
+    public AnomalyKind[] Types { get; set; } = [];
 }

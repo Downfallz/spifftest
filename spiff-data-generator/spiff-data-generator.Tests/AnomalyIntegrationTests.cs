@@ -1,4 +1,6 @@
+using Bogus;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using spiff_data_generator;
 using Xunit;
 
@@ -6,140 +8,130 @@ namespace spiff_data_generator.Tests;
 
 public class AnomalyIntegrationTests
 {
-    private static T5Rl3Config CreateSmallConfig(bool anomaliesEnabled = false, AnomalyConfig? anomalies = null)
+    private static ServiceProvider BuildServices(T5Rl3Config config)
     {
-        var cfg = new T5Rl3Config
-        {
-            Seed = 42,
-            NombreIndividus = 5,
-            NombreLignes = 10,
-            BatchSize = 100,
-            WeightsCourrierRetenu = [5, 95],
-            WeightsImpression = [80, 20],
-            WeightsCodeProvince = [70, 30],
-            PrettyPrint = false,
-            OutputDir = "out/test",
-        };
-
-        if (anomalies != null)
-        {
-            cfg.Anomalies = anomalies;
-        }
-        else
-        {
-            cfg.Anomalies = new AnomalyConfig { Enabled = anomaliesEnabled };
-        }
-
-        return cfg;
+        Randomizer.Seed = new Random(config.Seed);
+        return new ServiceCollection()
+            .AddSingleton(config)
+            .AddSingleton<IRandomService, RandomService>()
+            .AddSingleton<ISlipBuilder, IndividuSlipBuilder>()
+            .AddSingleton<ISlipBuilder, OrganisationSlipBuilder>()
+            .AddSingleton<IAnomalyService, AnomalyService>()
+            .AddSingleton<ISlipGenerator, SlipGenerator>()
+            .AddSingleton<IZipExporter, ZipExporter>()
+            .BuildServiceProvider();
     }
 
-    [Fact]
-    public void Generator_WithoutAnomalies_ShouldProduceValidZip()
+    private static T5Rl3Config SmallConfig(AnomalyConfig? anomalies = null) => new()
     {
-        var cfg = CreateSmallConfig(anomaliesEnabled: false);
-        var gen = new T5Rl3Generator(cfg);
+        Seed = 42,
+        NombreIndividus = 5,
+        NombreLignes = 10,
+        BatchSize = 100,
+        PrettyPrint = false,
+        OutputDir = "out/test",
+        Anomalies = anomalies ?? new AnomalyConfig(),
+    };
+
+    [Fact]
+    public void ExportToStream_WithoutAnomalies_ProducesValidZip()
+    {
+        var cfg = SmallConfig();
+        using var sp = BuildServices(cfg);
+        var exporter = sp.GetRequiredService<IZipExporter>();
 
         using var ms = new MemoryStream();
-        var act = () => gen.GenerateToStream(ms);
+        var act = () => exporter.ExportToStream(ms);
 
         act.Should().NotThrow();
         ms.Length.Should().BeGreaterThan(0);
     }
 
     [Fact]
-    public void Generator_WithAnomaliesEnabled_ShouldProduceValidZip()
+    public void ExportToStream_WithAnomalies_ProducesValidZip()
     {
-        var anomCfg = new AnomalyConfig
+        var cfg = SmallConfig(new AnomalyConfig
         {
             Enabled = true,
             Bloquant = new AnomalyLevelConfig
             {
                 Nombre = 2,
-                Types = new[] { "NomBeneficiaireManquant", "CodeDeviseErrone" }
+                Types = [AnomalyKind.NomBeneficiaireManquant, AnomalyKind.CodeDeviseErrone]
             },
             Importante = new AnomalyLevelConfig
             {
                 Nombre = 1,
-                Types = new[] { "NASManquant" }
+                Types = [AnomalyKind.NASManquant]
             },
             SevereImpression = new AnomalyLevelConfig
             {
                 Nombre = 1,
-                Types = new[] { "CodePostalManquant" }
+                Types = [AnomalyKind.CodePostalManquant]
             },
             Avertissement = new AnomalyLevelConfig
             {
                 Nombre = 1,
-                Types = new[] { "CodeLangueManquant" }
+                Types = [AnomalyKind.CodeLangueManquant]
             }
-        };
-
-        var cfg = CreateSmallConfig(anomalies: anomCfg);
-        var gen = new T5Rl3Generator(cfg);
+        });
+        using var sp = BuildServices(cfg);
+        var exporter = sp.GetRequiredService<IZipExporter>();
 
         using var ms = new MemoryStream();
-        var act = () => gen.GenerateToStream(ms);
+        var act = () => exporter.ExportToStream(ms);
 
         act.Should().NotThrow();
         ms.Length.Should().BeGreaterThan(0);
     }
 
     [Fact]
-    public void Generator_AnomalyCountShouldNotExceedTotalLines()
+    public void ExportToStream_ZeroNombre_BehavesAsDisabled()
     {
-        var anomCfg = new AnomalyConfig
+        var cfg = SmallConfig(new AnomalyConfig
         {
             Enabled = true,
-            Bloquant = new AnomalyLevelConfig
-            {
-                Nombre = 3,
-                Types = new[] { "NomBeneficiaireManquant" }
-            }
-        };
-
-        // 10 lignes, 3 anomalies = 7 normales + 3 avec anomalie
-        var cfg = CreateSmallConfig(anomalies: anomCfg);
-        var gen = new T5Rl3Generator(cfg);
+            Bloquant = new AnomalyLevelConfig { Nombre = 0, Types = [AnomalyKind.NomBeneficiaireManquant] },
+        });
+        using var sp = BuildServices(cfg);
+        var exporter = sp.GetRequiredService<IZipExporter>();
 
         using var ms = new MemoryStream();
-        var act = () => gen.GenerateToStream(ms);
+        var act = () => exporter.ExportToStream(ms);
 
         act.Should().NotThrow();
     }
 
     [Fact]
-    public void Generator_ZeroNombreAnomalies_ShouldBehaveAsDisabled()
+    public void ExportToStream_EmptyTypes_DoesNotCrash()
     {
-        var anomCfg = new AnomalyConfig
-        {
-            Enabled = true,
-            Bloquant = new AnomalyLevelConfig { Nombre = 0, Types = new[] { "NomBeneficiaireManquant" } },
-        };
-
-        var cfg = CreateSmallConfig(anomalies: anomCfg);
-        var gen = new T5Rl3Generator(cfg);
-
-        using var ms = new MemoryStream();
-        var act = () => gen.GenerateToStream(ms);
-
-        act.Should().NotThrow();
-    }
-
-    [Fact]
-    public void Generator_EmptyTypes_ShouldNotCrash()
-    {
-        var anomCfg = new AnomalyConfig
+        var cfg = SmallConfig(new AnomalyConfig
         {
             Enabled = true,
             Bloquant = new AnomalyLevelConfig { Nombre = 5, Types = [] },
-        };
-
-        var cfg = CreateSmallConfig(anomalies: anomCfg);
-        var gen = new T5Rl3Generator(cfg);
+        });
+        using var sp = BuildServices(cfg);
+        var exporter = sp.GetRequiredService<IZipExporter>();
 
         using var ms = new MemoryStream();
-        var act = () => gen.GenerateToStream(ms);
+        var act = () => exporter.ExportToStream(ms);
 
         act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void SlipGenerator_ProducesIndividuAndOrganisation()
+    {
+        var cfg = SmallConfig();
+        using var sp = BuildServices(cfg);
+        var generator = sp.GetRequiredService<ISlipGenerator>();
+
+        var individu = generator.Generate(1); // seq 1 <= 5 individus
+        var organisation = generator.Generate(6); // seq 6 > 5 individus
+
+        individu.Should().ContainKey("information");
+        ((Dictionary<string, object>)individu["information"]).Should().ContainKey("codFormulaire");
+
+        organisation.Should().ContainKey("information");
+        ((Dictionary<string, object>)organisation["information"]).Should().ContainKey("codFormulaireReleve");
     }
 }

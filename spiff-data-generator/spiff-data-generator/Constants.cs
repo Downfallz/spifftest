@@ -2,18 +2,19 @@ namespace spiff_data_generator;
 
 public static class Constants
 {
-    public static readonly int[] TYPES_ORGANISATION = { 3, 4, 5 };
+    public static readonly IReadOnlyList<OrganisationType> TypesOrganisation =
+        [OrganisationType.Societe, OrganisationType.Fiducie, OrganisationType.Association];
 
-    public static readonly Dictionary<string, string> NEQ_ENTITES_JURIDIQUES = new()
-    {
-        ["1"] = "11",
-        ["4"] = "22",
-        ["3"] = "33",
-        ["5"] = "88"
-    };
+    public static readonly IReadOnlyDictionary<OrganisationType, string> NeqPrefixes =
+        new Dictionary<OrganisationType, string>
+        {
+            [OrganisationType.Societe] = "33",
+            [OrganisationType.Fiducie] = "22",
+            [OrganisationType.Association] = "88",
+        };
 
-    public static readonly string[] NUMEROS_INSTITUTION_TRANSIT =
-    {
+    public static readonly string[] TransitNumbers =
+    [
         "81500008", "81500026", "81500038", "81500039",
         "81510006", "81510022", "81510035", "81510136",
         "81510103", "81510106", "81510108", "81510134",
@@ -41,13 +42,13 @@ public static class Constants
         "81540001", "81540015", "81550026", "81550027",
         "81550011", "81560026", "81570001", "81570024",
         "81570006", "81580001", "81580024", "81590001",
-        "81590006", "81590010", "81590015", "81592158"
-    };
+        "81590006", "81590010", "81590015", "81592158",
+    ];
 
-    public static readonly string[] NUMEROS_INSTITUTION_TRANSIT_ONTARIO =
-    {
+    public static readonly string[] TransitNumbersOntario =
+    [
         "32900303", "32900123", "32901137", "32901210",
         "32900315", "32901047", "32900339", "32901139",
-        "32900356", "32900501", "32901301"
-    };
+        "32900356", "32900501", "32901301",
+    ];
 }

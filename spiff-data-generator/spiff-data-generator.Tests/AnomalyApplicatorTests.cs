@@ -4,8 +4,16 @@ using Xunit;
 
 namespace spiff_data_generator.Tests;
 
-public class AnomalyApplicatorTests
+public class AnomalyServiceTests
 {
+    private readonly AnomalyService _sut;
+
+    public AnomalyServiceTests()
+    {
+        var config = new T5Rl3Config { NombreLignes = 100 };
+        _sut = new AnomalyService(config);
+    }
+
     // ========== Helpers ==========
 
     private static Dictionary<string, object> BuildIndividuRoot(
@@ -38,8 +46,6 @@ public class AnomalyApplicatorTests
                     new Dictionary<string, object>
                     {
                         ["isCodSousTypePartie"] = 1,
-                        ["idCodRoleRelevePartie"] = 1,
-                        ["idCodTypeRoleRelevePartie"] = 1,
                         ["identificationPartie"] = new List<object>
                         {
                             new Dictionary<string, object>
@@ -66,11 +72,9 @@ public class AnomalyApplicatorTests
                             ["numCodePostal"] = numCodePostal,
                             ["codePaysIso"] = codePaysIso,
                         },
-                        ["indAdrFiscalePostaleIdentique"] = true,
                     }
                 }
             },
-            ["documents"] = new List<object>(),
             ["contenu"] = new Dictionary<string, object>
             {
                 ["cases"] = new List<object>
@@ -102,16 +106,11 @@ public class AnomalyApplicatorTests
                 ["codFormulaireReleve"] = "T5",
                 ["codLangue"] = codLangue,
                 ["codDevise"] = codDevise,
-                ["typImpression"] = "N",
-                ["holdMail"] = false,
-                ["numIdentificationEmetteur"] = "32900303",
                 ["parties"] = new List<object>
                 {
                     new Dictionary<string, object>
                     {
                         ["idCodSousTypePartie"] = 2,
-                        ["idCodRoleRelevePartie"] = 1,
-                        ["idCodTypeRoleRelevePartie"] = 3,
                         ["identificationPartie"] = new List<object>
                         {
                             new Dictionary<string, object>
@@ -121,22 +120,22 @@ public class AnomalyApplicatorTests
                             },
                             new Dictionary<string, object>
                             {
-                                ["idCodTypeIdentificationPartie"] = 2, // NE
+                                ["idCodTypeIdentificationPartie"] = 2,
                                 ["numIdentificationPartie"] = ne
                             },
                             new Dictionary<string, object>
                             {
-                                ["idCodTypeIdentificationPartie"] = 6, // NEQ
+                                ["idCodTypeIdentificationPartie"] = 6,
                                 ["numIdentificationPartie"] = neq
                             },
                             new Dictionary<string, object>
                             {
-                                ["idCodTypeIdentificationPartie"] = 8, // FID
+                                ["idCodTypeIdentificationPartie"] = 8,
                                 ["numIdentificationPartie"] = fid
                             },
                             new Dictionary<string, object>
                             {
-                                ["idCodTypeIdentificationPartie"] = 7, // NI
+                                ["idCodTypeIdentificationPartie"] = 7,
                                 ["numIdentificationPartie"] = ni
                             }
                         },
@@ -152,17 +151,14 @@ public class AnomalyApplicatorTests
                             ["codPaysIso"] = codPaysIso,
                             ["numCodPostal"] = numCodPostal,
                         },
-                        ["indicateurAdresseFiscalePostalIdentique"] = true,
                     }
                 },
-                ["documents"] = new List<object>()
             },
             ["contenu"] = new Dictionary<string, object>
             {
                 ["cases"] = new List<object>
                 {
                     new Dictionary<string, object> { ["case"] = "13", ["valeur"] = "5000.00" },
-                    new Dictionary<string, object> { ["case"] = "2B", ["valeur"] = "32900303" },
                 }
             }
         };
@@ -176,15 +172,11 @@ public class AnomalyApplicatorTests
     }
 
     private static Dictionary<string, object> GetAdresse(Dictionary<string, object> root)
-    {
-        var party = GetParty(root);
-        return (Dictionary<string, object>)party["adresseFiscale"];
-    }
+        => (Dictionary<string, object>)GetParty(root)["adresseFiscale"];
 
     private static string GetIdentificationValue(Dictionary<string, object> root, int idCodType)
     {
-        var party = GetParty(root);
-        var idents = (List<object>)party["identificationPartie"];
+        var idents = (List<object>)GetParty(root)["identificationPartie"];
         foreach (var item in idents)
         {
             var dict = (Dictionary<string, object>)item;
@@ -207,201 +199,153 @@ public class AnomalyApplicatorTests
         return "";
     }
 
-    // ========== Bloquant Tests ==========
+    // ========== Bloquant ==========
 
     [Fact]
-    public void NomBeneficiaireManquant_ShouldClearNomFamille_WhenIndividu()
+    public void NomBeneficiaireManquant_ClearsNomFamille()
     {
-        var root = BuildIndividuRoot(nom: "TREMBLAY");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NomBeneficiaireManquant, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.NomBeneficiaireManquant, isIndividu: true);
         GetParty(root)["nomFamille"].Should().Be("");
     }
 
     [Fact]
-    public void NomBeneficiaireManquant_ShouldNotAffect_WhenOrganisation()
+    public void NomBeneficiaireManquant_DoesNotAffectOrganisation()
     {
         var root = BuildOrganisationRoot();
-
-        AnomalyApplicator.Apply(root, AnomalyType.NomBeneficiaireManquant, isIndividu: false);
-
+        _sut.Apply(root, AnomalyKind.NomBeneficiaireManquant, isIndividu: false);
         GetParty(root)["nomOrganisationLign1"].Should().Be("DESJARDINS INC");
     }
 
     [Fact]
-    public void PrenomBeneficiaireManquant_ShouldClearPrenom()
+    public void PrenomBeneficiaireManquant_ClearsPrenom()
     {
-        var root = BuildIndividuRoot(prenom: "JEAN");
-
-        AnomalyApplicator.Apply(root, AnomalyType.PrenomBeneficiaireManquant, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.PrenomBeneficiaireManquant, isIndividu: true);
         GetParty(root)["prn"].Should().Be("");
     }
 
     [Fact]
-    public void NomOrganisationManquant_ShouldClearNomOrg_WhenOrganisation()
+    public void NomOrganisationManquant_ClearsNomOrg()
     {
-        var root = BuildOrganisationRoot(nomOrg1: "DESJARDINS INC");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NomOrganisationManquant, isIndividu: false);
-
+        var root = BuildOrganisationRoot();
+        _sut.Apply(root, AnomalyKind.NomOrganisationManquant, isIndividu: false);
         GetParty(root)["nomOrganisationLign1"].Should().Be("");
     }
 
     [Fact]
-    public void NomOrganisationManquant_ShouldNotAffect_WhenIndividu()
+    public void NomOrganisationManquant_DoesNotAffectIndividu()
     {
-        var root = BuildIndividuRoot(nom: "TREMBLAY");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NomOrganisationManquant, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.NomOrganisationManquant, isIndividu: true);
         GetParty(root)["nomFamille"].Should().Be("TREMBLAY");
     }
 
     [Fact]
-    public void Nom2eBeneficiaireManquant_ShouldClearNomOrgLign2()
+    public void Nom2eBeneficiaireManquant_ClearsNomOrgLign2()
     {
-        var root = BuildOrganisationRoot(nomOrg2: "FILIALE");
-
-        AnomalyApplicator.Apply(root, AnomalyType.Nom2eBeneficiaireManquant, isIndividu: false);
-
+        var root = BuildOrganisationRoot();
+        _sut.Apply(root, AnomalyKind.Nom2eBeneficiaireManquant, isIndividu: false);
         GetParty(root)["nomOrganisationLign2"].Should().Be("");
     }
 
     [Fact]
-    public void Prenom2eBeneficiaireManquant_ShouldClearInitiale()
+    public void Prenom2eBeneficiaireManquant_ClearsInitiale()
     {
-        var root = BuildIndividuRoot(initiale: "J");
-
-        AnomalyApplicator.Apply(root, AnomalyType.Prenom2eBeneficiaireManquant, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.Prenom2eBeneficiaireManquant, isIndividu: true);
         GetParty(root)["nomInitiale"].Should().Be("");
     }
 
     [Fact]
-    public void CodeDeviseErrone_ShouldSetToNON()
+    public void CodeDeviseErrone_SetsToNON()
     {
-        var root = BuildIndividuRoot(codDevise: "CAD");
-
-        AnomalyApplicator.Apply(root, AnomalyType.CodeDeviseErrone, isIndividu: true);
-
-        var info = (Dictionary<string, object>)root["information"];
-        info["codDevise"].Should().Be("NON");
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.CodeDeviseErrone, isIndividu: true);
+        ((Dictionary<string, object>)root["information"])["codDevise"].Should().Be("NON");
     }
 
     [Fact]
-    public void Case13Manquant_ShouldClearCase13Value()
+    public void Case13Manquant_ClearsCase13()
     {
         var root = BuildIndividuRoot(case13: "1234.56");
-
-        AnomalyApplicator.Apply(root, AnomalyType.Case13Manquant, isIndividu: true);
-
+        _sut.Apply(root, AnomalyKind.Case13Manquant, isIndividu: true);
         GetCaseValue(root, "13").Should().Be("");
     }
 
-    // ========== Importante Tests ==========
+    // ========== Importante ==========
 
     [Fact]
-    public void NASManquant_ShouldReplaceWithZeros()
+    public void NASManquant_ReplacesWithZeros()
     {
-        var root = BuildIndividuRoot(nas: "123456789");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NASManquant, isIndividu: true);
-
-        GetIdentificationValue(root, idCodType: 1).Should().Be("000000000");
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.NASManquant, isIndividu: true);
+        GetIdentificationValue(root, 1).Should().Be("000000000");
     }
 
     [Fact]
-    public void NEManquant_ShouldReplaceWithZeros()
-    {
-        var root = BuildOrganisationRoot(ne: "999888777");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NEManquant, isIndividu: false);
-
-        GetIdentificationValue(root, idCodType: 2).Should().Be("000000000");
-    }
-
-    [Fact]
-    public void NEQManquant_ShouldReplaceWithZeros()
-    {
-        var root = BuildOrganisationRoot(neq: "3312345678");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NEQManquant, isIndividu: false);
-
-        GetIdentificationValue(root, idCodType: 6).Should().Be("0000000000");
-    }
-
-    [Fact]
-    public void FIDManquant_ShouldReplaceWithZeros()
-    {
-        var root = BuildOrganisationRoot(fid: "T12345678");
-
-        AnomalyApplicator.Apply(root, AnomalyType.FIDManquant, isIndividu: false);
-
-        GetIdentificationValue(root, idCodType: 8).Should().Be("T00000000");
-    }
-
-    [Fact]
-    public void NIManquant_ShouldReplaceWithZeros()
-    {
-        var root = BuildOrganisationRoot(ni: "1234567890");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NIManquant, isIndividu: false);
-
-        GetIdentificationValue(root, idCodType: 7).Should().Be("0000000000");
-    }
-
-    [Fact]
-    public void NASManquant_ShouldNotAffect_WhenOrganisation()
+    public void NEManquant_ReplacesWithZeros()
     {
         var root = BuildOrganisationRoot();
-
-        AnomalyApplicator.Apply(root, AnomalyType.NASManquant, isIndividu: false);
-
-        // NAS (type 1) n'existe pas dans org, pas d'exception
-        GetIdentificationValue(root, idCodType: 4).Should().NotBeEmpty();
+        _sut.Apply(root, AnomalyKind.NEManquant, isIndividu: false);
+        GetIdentificationValue(root, 2).Should().Be("000000000");
     }
 
-    // ========== Sévère impression Tests ==========
+    [Fact]
+    public void NEQManquant_ReplacesWithZeros()
+    {
+        var root = BuildOrganisationRoot();
+        _sut.Apply(root, AnomalyKind.NEQManquant, isIndividu: false);
+        GetIdentificationValue(root, 6).Should().Be("0000000000");
+    }
 
     [Fact]
-    public void CodePostalManquant_ShouldClearPostalCode_Individu()
+    public void FIDManquant_ReplacesWithZeros()
     {
-        var root = BuildIndividuRoot(numCodePostal: "G1K2A3");
+        var root = BuildOrganisationRoot();
+        _sut.Apply(root, AnomalyKind.FIDManquant, isIndividu: false);
+        GetIdentificationValue(root, 8).Should().Be("T00000000");
+    }
 
-        AnomalyApplicator.Apply(root, AnomalyType.CodePostalManquant, isIndividu: true);
+    [Fact]
+    public void NIManquant_ReplacesWithZeros()
+    {
+        var root = BuildOrganisationRoot();
+        _sut.Apply(root, AnomalyKind.NIManquant, isIndividu: false);
+        GetIdentificationValue(root, 7).Should().Be("0000000000");
+    }
 
+    // ========== Sévère impression ==========
+
+    [Fact]
+    public void CodePostalManquant_ClearsPostalCode_Individu()
+    {
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.CodePostalManquant, isIndividu: true);
         GetAdresse(root)["numCodePostal"].Should().Be("");
     }
 
     [Fact]
-    public void CodePostalManquant_ShouldClearPostalCode_Organisation()
+    public void CodePostalManquant_ClearsPostalCode_Organisation()
     {
-        var root = BuildOrganisationRoot(numCodPostal: "K1A0B1");
-
-        AnomalyApplicator.Apply(root, AnomalyType.CodePostalManquant, isIndividu: false);
-
+        var root = BuildOrganisationRoot();
+        _sut.Apply(root, AnomalyKind.CodePostalManquant, isIndividu: false);
         GetAdresse(root)["numCodPostal"].Should().Be("");
     }
 
     [Fact]
-    public void CodeProvinceManquant_ShouldClearProvince()
+    public void CodeProvinceManquant_ClearsProvince()
     {
-        var root = BuildIndividuRoot(codProvince: "QC");
-
-        AnomalyApplicator.Apply(root, AnomalyType.CodeProvinceManquant, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.CodeProvinceManquant, isIndividu: true);
         GetAdresse(root)["codProvince"].Should().Be("");
     }
 
     [Fact]
-    public void AdresseManquante_ShouldClearAddressFields()
+    public void AdresseManquante_ClearsAllAddressFields()
     {
-        var root = BuildIndividuRoot(nomRue: "RUE PRINCIPALE", numCivique: "123");
-
-        AnomalyApplicator.Apply(root, AnomalyType.AdresseManquante, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.AdresseManquante, isIndividu: true);
         var adresse = GetAdresse(root);
         adresse["nomRue"].Should().Be("");
         adresse["numCivique"].Should().Be("");
@@ -409,71 +353,117 @@ public class AnomalyApplicatorTests
     }
 
     [Fact]
-    public void VilleManquante_ShouldClearMunicipalite()
+    public void VilleManquante_ClearsMunicipalite()
     {
-        var root = BuildIndividuRoot(nomMunicipalite: "QUEBEC");
-
-        AnomalyApplicator.Apply(root, AnomalyType.VilleManquante, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.VilleManquante, isIndividu: true);
         GetAdresse(root)["nomMunicipalite"].Should().Be("");
     }
 
     [Fact]
-    public void CodePaysManquant_ShouldClearPays_Individu()
+    public void CodePaysManquant_ClearsPays_Individu()
     {
-        var root = BuildIndividuRoot(codePaysIso: "CAN");
-
-        AnomalyApplicator.Apply(root, AnomalyType.CodePaysManquant, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.CodePaysManquant, isIndividu: true);
         GetAdresse(root)["codePaysIso"].Should().Be("");
     }
 
     [Fact]
-    public void CodePaysManquant_ShouldClearPays_Organisation()
+    public void CodePaysManquant_ClearsPays_Organisation()
     {
-        var root = BuildOrganisationRoot(codPaysIso: "CAN");
-
-        AnomalyApplicator.Apply(root, AnomalyType.CodePaysManquant, isIndividu: false);
-
+        var root = BuildOrganisationRoot();
+        _sut.Apply(root, AnomalyKind.CodePaysManquant, isIndividu: false);
         GetAdresse(root)["codPaysIso"].Should().Be("");
     }
 
-    // ========== Avertissement Tests ==========
+    // ========== Avertissement ==========
 
     [Fact]
-    public void CodeLangueManquant_ShouldClearLangue()
+    public void CodeLangueManquant_ClearsLangue()
     {
-        var root = BuildIndividuRoot(codLangue: "F");
-
-        AnomalyApplicator.Apply(root, AnomalyType.CodeLangueManquant, isIndividu: true);
-
-        var info = (Dictionary<string, object>)root["information"];
-        info["codLangue"].Should().Be("");
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.CodeLangueManquant, isIndividu: true);
+        ((Dictionary<string, object>)root["information"])["codLangue"].Should().Be("");
     }
 
     // ========== Edge Cases ==========
 
     [Fact]
-    public void Apply_ShouldNotThrow_WhenIdentificationTypeNotFound()
+    public void Apply_DoesNotThrow_WhenIdentificationTypeNotFound()
     {
         var root = BuildIndividuRoot();
-
-        // FID (type 8) n'existe pas dans un individu
-        var act = () => AnomalyApplicator.Apply(root, AnomalyType.FIDManquant, isIndividu: false);
-
+        var act = () => _sut.Apply(root, AnomalyKind.FIDManquant, isIndividu: false);
         act.Should().NotThrow();
     }
 
     [Fact]
-    public void Apply_MultipleAnomalies_ShouldStackCorrectly()
+    public void Apply_MultipleAnomalies_StackCorrectly()
     {
-        var root = BuildIndividuRoot(nom: "TREMBLAY", codDevise: "CAD");
-
-        AnomalyApplicator.Apply(root, AnomalyType.NomBeneficiaireManquant, isIndividu: true);
-        AnomalyApplicator.Apply(root, AnomalyType.CodeDeviseErrone, isIndividu: true);
-
+        var root = BuildIndividuRoot();
+        _sut.Apply(root, AnomalyKind.NomBeneficiaireManquant, isIndividu: true);
+        _sut.Apply(root, AnomalyKind.CodeDeviseErrone, isIndividu: true);
         GetParty(root)["nomFamille"].Should().Be("");
-        var info = (Dictionary<string, object>)root["information"];
-        info["codDevise"].Should().Be("NON");
+        ((Dictionary<string, object>)root["information"])["codDevise"].Should().Be("NON");
+    }
+
+    // ========== GetAnomalyForSequence ==========
+
+    [Fact]
+    public void GetAnomalyForSequence_ReturnsNull_WhenDisabled()
+    {
+        var config = new T5Rl3Config
+        {
+            NombreLignes = 10,
+            Anomalies = new AnomalyConfig { Enabled = false }
+        };
+        var sut = new AnomalyService(config);
+
+        sut.GetAnomalyForSequence(10).Should().BeNull();
+    }
+
+    [Fact]
+    public void GetAnomalyForSequence_ReturnsAnomaly_ForLastRecords()
+    {
+        var config = new T5Rl3Config
+        {
+            NombreLignes = 10,
+            Anomalies = new AnomalyConfig
+            {
+                Enabled = true,
+                Bloquant = new AnomalyLevelConfig
+                {
+                    Nombre = 2,
+                    Types = [AnomalyKind.NomBeneficiaireManquant, AnomalyKind.CodeDeviseErrone]
+                }
+            }
+        };
+        var sut = new AnomalyService(config);
+
+        sut.GetAnomalyForSequence(8).Should().BeNull();
+        sut.GetAnomalyForSequence(9).Should().Be(AnomalyKind.NomBeneficiaireManquant);
+        sut.GetAnomalyForSequence(10).Should().Be(AnomalyKind.CodeDeviseErrone);
+    }
+
+    [Fact]
+    public void GetAnomalyForSequence_RoundRobins_WhenMoreNombreThanTypes()
+    {
+        var config = new T5Rl3Config
+        {
+            NombreLignes = 10,
+            Anomalies = new AnomalyConfig
+            {
+                Enabled = true,
+                Bloquant = new AnomalyLevelConfig
+                {
+                    Nombre = 3,
+                    Types = [AnomalyKind.NomBeneficiaireManquant]
+                }
+            }
+        };
+        var sut = new AnomalyService(config);
+
+        sut.GetAnomalyForSequence(8).Should().Be(AnomalyKind.NomBeneficiaireManquant);
+        sut.GetAnomalyForSequence(9).Should().Be(AnomalyKind.NomBeneficiaireManquant);
+        sut.GetAnomalyForSequence(10).Should().Be(AnomalyKind.NomBeneficiaireManquant);
     }
 }
