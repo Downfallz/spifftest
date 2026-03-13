@@ -1,5 +1,5 @@
 using spiff_data_generator.Common.Interfaces;
-using spiff_data_generator.Common.Random;
+using spiff_data_generator.Common.RandomGen;
 using spiff_data_generator.T5Rl3.Config;
 using spiff_data_generator.T5Rl3.Models;
 

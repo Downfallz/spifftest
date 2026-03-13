@@ -2,7 +2,7 @@ using spiff_data_generator.T5Rl3.Config;
 using System.Globalization;
 using Bogus;
 
-namespace spiff_data_generator.Common.Random;
+namespace spiff_data_generator.Common.RandomGen;
 
 public sealed class RandomService : IRandomService
 {

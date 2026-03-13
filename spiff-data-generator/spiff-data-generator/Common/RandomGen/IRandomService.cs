@@ -1,6 +1,6 @@
 using spiff_data_generator.T5Rl3.Config;
 
-namespace spiff_data_generator.Common.Random;
+namespace spiff_data_generator.Common.RandomGen;
 
 public interface IRandomService
 {
