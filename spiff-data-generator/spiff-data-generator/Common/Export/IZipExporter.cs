@@ -1,4 +1,4 @@
-namespace spiff_data_generator;
+namespace spiff_data_generator.Common.Export;
 
 public interface IZipExporter
 {

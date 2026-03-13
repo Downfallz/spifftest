@@ -1,5 +1,5 @@
 using FluentAssertions;
-using spiff_data_generator;
+using spiff_data_generator.Common.Anomalies;
 using Xunit;
 
 namespace spiff_data_generator.Tests;

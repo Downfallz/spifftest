@@ -1,7 +1,10 @@
 using FluentAssertions;
 using Moq;
 using Moq.AutoMock;
-using spiff_data_generator;
+using spiff_data_generator.Common.Random;
+using spiff_data_generator.T5Rl3.Builders;
+using spiff_data_generator.T5Rl3.Config;
+using spiff_data_generator.T5Rl3.Models;
 using Xunit;
 
 namespace spiff_data_generator.Tests;

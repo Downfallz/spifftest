@@ -1,4 +1,4 @@
-namespace spiff_data_generator;
+namespace spiff_data_generator.Common.Anomalies;
 
 public sealed class AnomalyConfig
 {

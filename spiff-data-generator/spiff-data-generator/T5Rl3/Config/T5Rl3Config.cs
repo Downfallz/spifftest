@@ -1,4 +1,6 @@
-namespace spiff_data_generator;
+using spiff_data_generator.Common.Anomalies;
+
+namespace spiff_data_generator.T5Rl3.Config;
 
 public sealed class T5Rl3Config
 {
