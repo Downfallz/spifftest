@@ -30,8 +30,32 @@ public class GenerateController : ControllerBase
     {
         request ??= new GenerateRequest();
 
+        // ── Validation ────────────────────────────────────────
         if (request.NombreIndividus > request.NombreLignes)
             return BadRequest("NombreIndividus ne peut pas dépasser NombreLignes.");
+
+        if (request.BatchSize > request.NombreLignes)
+            return BadRequest("BatchSize ne peut pas dépasser NombreLignes.");
+
+        if (request.Devises == null || request.Devises.Length == 0)
+            return BadRequest("Devises ne peut pas être vide.");
+
+        if (request.WeightsCourrierRetenu.Any(w => w < 0)
+            || request.WeightsImpression.Any(w => w < 0)
+            || request.WeightsCodeProvince.Any(w => w < 0))
+            return BadRequest("Les poids (weights) ne peuvent pas être négatifs.");
+
+        if (request.WeightsCourrierRetenu.Length != 2)
+            return BadRequest("WeightsCourrierRetenu doit contenir exactement 2 éléments.");
+
+        if (request.WeightsImpression.Length != 2)
+            return BadRequest("WeightsImpression doit contenir exactement 2 éléments.");
+
+        if (request.WeightsCodeProvince.Length != 2)
+            return BadRequest("WeightsCodeProvince doit contenir exactement 2 éléments.");
+
+        if (request.NombreFeuilletParCaisse <= 0)
+            return BadRequest("NombreFeuilletParCaisse doit être supérieur à 0.");
 
         var config = request.ToConfig();
         Randomizer.Seed = new Random(config.Seed);

@@ -54,7 +54,7 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
                         ["prn"] = prenom,
                         ["nomFamille"] = nom,
                         ["nomInitiale"] = prenom.Length > 0 ? prenom[..1] : "",
-                        ["adresseFiscale"] = BuildAdresse(context),
+                        ["adresseFiscale"] = AdresseHelper.BuildAdresse(_random, context),
                         ["indAdFiscalePostaleIdentique"] = true,
                     }
                 },
@@ -64,20 +64,6 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
             {
                 ["cases"] = CaseBuilder.Build(context)
             }
-        };
-    }
-
-    private Dictionary<string, object> BuildAdresse(SlipContext context)
-    {
-        return new Dictionary<string, object>
-        {
-            ["numCivique"] = _random.BuildingNumber(),
-            ["nomRue"] = _random.StreetName(),
-            ["nomMunicipalite"] = _random.City(),
-            ["numUnite"] = _random.SecondaryAddress(),
-            ["codProvince"] = context.Province,
-            ["codPaysIso"] = context.Pays,
-            ["numCodePostal"] = _random.GenerateCanadianPostalCode(context.Province).Replace(" ", ""),
         };
     }
 
