@@ -13,6 +13,8 @@ public sealed class ZipExporter : IZipExporter
     private readonly ISlipGenerator _generator;
     private readonly IGenerationLogger _logger;
 
+    public Action<int, int>? OnProgress { get; set; }
+
     public ZipExporter(T5Rl3Config config, ISlipGenerator generator, IGenerationLogger logger)
     {
         _config = config;
@@ -44,8 +46,6 @@ public sealed class ZipExporter : IZipExporter
         using var fs = new FileStream(zipPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
         ExportToStream(fs, currentDate);
 
-        var fileSize = new FileInfo(zipPath).Length;
-        Console.WriteLine($"ZIP généré: {zipPath} ({fileSize:N0} bytes)");
     }
 
     public void ExportToStream(Stream output, string? yyyymmdd = null)
@@ -64,12 +64,11 @@ public sealed class ZipExporter : IZipExporter
 
             int current = endSeq - 1;
             _logger.LogProgress(current, _config.NombreLignes);
-            PrintProgress(current, _config.NombreLignes);
+            OnProgress?.Invoke(current, _config.NombreLignes);
         }
 
         var duration = DateTime.Now - startTime;
         _logger.LogComplete(duration, output.CanSeek ? output.Length : null);
-        Console.WriteLine($"Génération terminée. Durée: {duration}");
     }
 
     private void WriteBatch(ZipArchive zip, int fileIndex, int startSeq, int endSeq)
@@ -98,11 +97,5 @@ public sealed class ZipExporter : IZipExporter
             serializer.Serialize(jw, obj);
         }
         jw.WriteEndArray();
-    }
-
-    private static void PrintProgress(int current, int total)
-    {
-        double pct = current / (double)total * 100.0;
-        Console.WriteLine($"Progress: {current}/{total} ({pct:F2}%)");
     }
 }

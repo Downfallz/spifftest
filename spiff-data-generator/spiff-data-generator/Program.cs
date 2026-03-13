@@ -2,6 +2,7 @@ using System.Globalization;
 using Bogus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using spiff_data_generator.Common.Anomalies;
 using spiff_data_generator.Common.Export;
 using spiff_data_generator.Common.Interfaces;
@@ -11,30 +12,164 @@ using spiff_data_generator.T5Rl3.Builders;
 using spiff_data_generator.T5Rl3.Config;
 using spiff_data_generator.T5Rl3.Generation;
 
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(AppContext.BaseDirectory)
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-    .Build();
+while (true)
+{
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+        .Build();
 
-var config = configuration.GetSection("T5Rl3").Get<T5Rl3Config>() ?? new T5Rl3Config();
-Randomizer.Seed = new Random(config.Seed);
+    var config = configuration.GetSection("T5Rl3").Get<T5Rl3Config>() ?? new T5Rl3Config();
+    Randomizer.Seed = new Random(config.Seed);
 
-var currentDate = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-var filePrefix = $"{config.GetOutputPrefix()}_{currentDate}01";
-using var logger = new FileGenerationLogger(config.OutputDir, filePrefix);
+    // ── Header ──────────────────────────────────────────
+    AnsiConsole.Clear();
+    AnsiConsole.Write(new FigletText("SPIFF Generator").Color(Color.CadetBlue));
+    AnsiConsole.MarkupLine($"[grey]T5RL3 / T5 — {DateTime.Now:yyyy-MM-dd HH:mm:ss}[/]");
+    AnsiConsole.WriteLine();
 
-var services = new ServiceCollection()
-    .AddSingleton(config)
-    .AddSingleton<IGenerationLogger>(logger)
-    .AddSingleton<IRandomService, RandomService>()
-    .AddSingleton<ISlipBuilder, IndividuSlipBuilder>()
-    .AddSingleton<ISlipBuilder, OrganisationSlipBuilder>()
-    .AddSingleton<IAnomalyService, AnomalyService>()
-    .AddSingleton<ISlipGenerator, SlipGenerator>()
-    .AddSingleton<IZipExporter, ZipExporter>()
-    .BuildServiceProvider();
+    // ── Config table ────────────────────────────────────
+    var table = new Table()
+        .Border(TableBorder.Rounded)
+        .Title("[bold yellow]Configuration[/]")
+        .AddColumn("[bold]Paramètre[/]")
+        .AddColumn("[bold]Valeur[/]");
 
-var exporter = services.GetRequiredService<IZipExporter>();
-exporter.ExportToFile();
+    table.AddRow("Plateforme", config.Plateforme);
+    table.AddRow("Code système", config.CodeSysteme);
+    table.AddRow("Type déclaration", config.TypeDeclaration);
+    table.AddRow("Cycle production", config.CycleProduction);
+    table.AddRow("Année production", config.AnneeProduction);
+    table.AddEmptyRow();
+    table.AddRow("Seed", config.Seed.ToString());
+    table.AddRow("[green]Individus[/]", $"{config.NombreIndividus:N0}");
+    table.AddRow("[blue]Organisations[/]", $"{config.NombreLignes - config.NombreIndividus:N0}");
+    table.AddRow("[bold]Total lignes[/]", $"[bold]{config.NombreLignes:N0}[/]");
+    table.AddRow("Batch size", $"{config.BatchSize:N0}");
+    table.AddEmptyRow();
+    table.AddRow("Weights province (QC/Autre)", FormatWeights(config.WeightsCodeProvince));
+    table.AddRow("Weights impression (PN/N)", FormatWeights(config.WeightsImpression));
+    table.AddRow("Weights courrier retenu", FormatWeights(config.WeightsCourrierRetenu));
+    table.AddRow("Indicateur Ontario", config.IndicateurOntario ? "[green]Oui[/]" : "Non");
+    table.AddRow("Feuillets / caisse", $"{config.NombreFeuilletParCaisse:N0}");
+    table.AddEmptyRow();
+    table.AddRow("Émetteur fourni", config.AjouterEmetteurFourni ? "[green]Oui[/]" : "Non");
+    table.AddRow("ID unique", config.AjouterIdUnique ? $"[green]Oui[/] (prefix: {Markup.Escape(config.PrefixeIdentificationUnique)})" : "Non");
+    table.AddRow("Devises", string.Join(", ", config.Devises));
+    table.AddEmptyRow();
+    table.AddRow("Output", Markup.Escape(config.OutputDir));
+    table.AddRow("Pretty print", config.PrettyPrint ? "[green]Oui[/]" : "Non");
 
-Console.WriteLine("Terminé.");
+    // Anomalies section
+    if (config.Anomalies.Enabled)
+    {
+        table.AddEmptyRow();
+        table.AddRow("[red]Anomalies[/]", "[green]Activées[/]");
+        AddAnomalyRow(table, "Bloquant", config.Anomalies.Bloquant);
+        AddAnomalyRow(table, "Importante", config.Anomalies.Importante);
+        AddAnomalyRow(table, "Sévère impression", config.Anomalies.SevereImpression);
+        AddAnomalyRow(table, "Avertissement", config.Anomalies.Avertissement);
+
+        int totalAnomalies = config.Anomalies.Bloquant.Nombre
+            + config.Anomalies.Importante.Nombre
+            + config.Anomalies.SevereImpression.Nombre
+            + config.Anomalies.Avertissement.Nombre;
+        table.AddRow("[bold red]Total anomalies[/]", $"[bold]{totalAnomalies}[/]");
+    }
+    else
+    {
+        table.AddEmptyRow();
+        table.AddRow("[red]Anomalies[/]", "[grey]Désactivées[/]");
+    }
+
+    AnsiConsole.Write(table);
+    AnsiConsole.WriteLine();
+
+    // ── Confirm ─────────────────────────────────────────
+    if (!AnsiConsole.Confirm("[yellow]Lancer la génération?[/]"))
+        break;
+
+    // ── Generate ────────────────────────────────────────
+    var currentDate = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+    var filePrefix = $"{config.GetOutputPrefix()}_{currentDate}01";
+    using var logger = new FileGenerationLogger(config.OutputDir, filePrefix);
+
+    var services = new ServiceCollection()
+        .AddSingleton(config)
+        .AddSingleton<IGenerationLogger>(logger)
+        .AddSingleton<IRandomService, RandomService>()
+        .AddSingleton<ISlipBuilder, IndividuSlipBuilder>()
+        .AddSingleton<ISlipBuilder, OrganisationSlipBuilder>()
+        .AddSingleton<IAnomalyService, AnomalyService>()
+        .AddSingleton<ISlipGenerator, SlipGenerator>()
+        .AddSingleton<IZipExporter, ZipExporter>()
+        .BuildServiceProvider();
+
+    var exporter = services.GetRequiredService<IZipExporter>();
+
+    var sw = System.Diagnostics.Stopwatch.StartNew();
+
+    AnsiConsole.Progress()
+        .AutoClear(true)
+        .Columns(
+            new TaskDescriptionColumn(),
+            new ProgressBarColumn(),
+            new PercentageColumn(),
+            new SpinnerColumn())
+        .Start(ctx =>
+        {
+            var task = ctx.AddTask($"[green]Génération ({config.NombreLignes:N0} lignes)[/]",
+                maxValue: config.NombreLignes);
+            exporter.OnProgress = (current, _) => task.Value = current;
+            exporter.ExportToFile();
+            task.Value = config.NombreLignes;
+        });
+
+    sw.Stop();
+
+    // ── Summary ─────────────────────────────────────────
+    AnsiConsole.WriteLine();
+    var zipPath = Path.Combine(config.OutputDir, $"{filePrefix}.zip");
+    long fileSize = File.Exists(zipPath) ? new FileInfo(zipPath).Length : 0;
+
+    var summary = new Table()
+        .Border(TableBorder.Rounded)
+        .Title("[bold green]Génération terminée[/]")
+        .AddColumn("[bold]Info[/]")
+        .AddColumn("[bold]Valeur[/]");
+
+    summary.AddRow("Fichier", Markup.Escape(zipPath));
+    summary.AddRow("Taille", $"{fileSize:N0} bytes ({fileSize / 1024.0 / 1024.0:F2} MB)");
+    summary.AddRow("Durée", $"{sw.Elapsed.TotalSeconds:F2}s");
+    summary.AddRow("Débit", $"{config.NombreLignes / sw.Elapsed.TotalSeconds:F0} lignes/sec");
+    summary.AddRow("Log", Markup.Escape(Path.Combine(config.OutputDir, $"{filePrefix}.log")));
+
+    AnsiConsole.Write(summary);
+    AnsiConsole.WriteLine();
+
+    services.Dispose();
+
+    // ── Relaunch? ───────────────────────────────────────
+    if (!AnsiConsole.Confirm("[yellow]Relancer une génération?[/]", defaultValue: false))
+        break;
+}
+
+AnsiConsole.MarkupLine("[grey]Au revoir![/]");
+
+// ── Local helpers ───────────────────────────────────────
+
+static string FormatWeights(int[] weights) =>
+    weights.Length == 0 ? "[grey]défaut[/]" : string.Join(" / ", weights);
+
+static void AddAnomalyRow(Table table, string label, AnomalyLevelConfig level)
+{
+    if (level.Nombre > 0)
+    {
+        var types = string.Join(", ", level.Types.Select(t => t.ToString()));
+        table.AddRow($"  {label}", $"{level.Nombre}x — {Markup.Escape(types)}");
+    }
+    else
+    {
+        table.AddRow($"  {label}", "[grey]0[/]");
+    }
+}
