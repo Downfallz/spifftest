@@ -1,5 +1,12 @@
 using Bogus;
 using Microsoft.AspNetCore.Mvc;
+using spiff_data_generator.Common.Anomalies;
+using spiff_data_generator.Common.Export;
+using spiff_data_generator.Common.Interfaces;
+using spiff_data_generator.Common.Logging;
+using spiff_data_generator.Common.RandomGen;
+using spiff_data_generator.T5Rl3.Builders;
+using spiff_data_generator.T5Rl3.Generation;
 
 namespace spiff_data_generator.Api;
 
@@ -19,8 +26,10 @@ public class GenerateController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(GenerateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Generate([FromBody] GenerateRequest request)
+    public async Task<IActionResult> Generate([FromBody] GenerateRequest? request = null)
     {
+        request ??= new GenerateRequest();
+
         if (request.NombreIndividus > request.NombreLignes)
             return BadRequest("NombreIndividus ne peut pas dépasser NombreLignes.");
 
@@ -35,8 +44,10 @@ public class GenerateController : ControllerBase
             new IndividuSlipBuilder(random),
             new OrganisationSlipBuilder(random),
         };
-        var slipGenerator = new SlipGenerator(config, random, builders, anomalyService);
-        var zipExporter = new ZipExporter(config, slipGenerator);
+        using var genLogger = new MsLoggerGenerationLogger(
+            HttpContext.RequestServices.GetRequiredService<ILogger<MsLoggerGenerationLogger>>());
+        var slipGenerator = new SlipGenerator(config, random, builders, anomalyService, genLogger);
+        var zipExporter = new ZipExporter(config, slipGenerator, genLogger);
 
         _logger.LogInformation(
             "Génération démarrée: {Lignes} lignes ({Individus} individus, {Orgs} organisations)",
@@ -46,12 +57,12 @@ public class GenerateController : ControllerBase
 
         // Generate ZIP in memory
         using var zipStream = new MemoryStream();
-        var dateString = DateTime.Today.ToString("yyyyMMdd");
+        var dateString = DateTime.Now.ToString("yyyyMMddHHmmss");
         zipExporter.ExportToStream(zipStream, dateString);
 
         sw.Stop();
 
-        var fileName = $"{config.GetOutputPrefix()}_{dateString}01.zip";
+        var fileName = $"{config.GetOutputPrefix()}_{dateString}.zip";
 
         _logger.LogInformation(
             "Génération terminée en {Elapsed}ms. Upload vers FTP...",

@@ -1,0 +1,24 @@
+using spiff_data_generator.T5Rl3.Models;
+
+namespace spiff_data_generator.T5Rl3.Builders;
+
+public static class CaseBuilder
+{
+    public static List<object> Build(SlipContext context)
+    {
+        var cases = new List<object>
+        {
+            new Dictionary<string, object> { ["case"] = "13", ["valeur"] = context.Case13 },
+            new Dictionary<string, object> { ["case"] = "28", ["valeur"] = context.NumTransit },
+            new Dictionary<string, object> { ["case"] = "29", ["valeur"] = context.NumCompte },
+        };
+
+        if (context.IsQc)
+        {
+            cases.Add(new Dictionary<string, object> { ["case"] = "D", ["valeur"] = context.CaseD });
+            cases.Add(new Dictionary<string, object> { ["case"] = "Succ", ["valeur"] = context.NumTransit });
+        }
+
+        return cases;
+    }
+}
