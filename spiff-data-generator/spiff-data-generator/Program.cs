@@ -85,9 +85,14 @@ while (true)
     AnsiConsole.Write(table);
     AnsiConsole.WriteLine();
 
-    // ── Confirm ─────────────────────────────────────────
-    if (!AnsiConsole.Confirm("[yellow]Lancer la génération?[/]"))
-        break;
+    // ── Menu ──────────────────────────────────────────────
+    var action = AnsiConsole.Prompt(
+        new SelectionPrompt<string>()
+            .Title("[yellow]Que voulez-vous faire?[/]")
+            .AddChoices("Lancer la génération", "Recharger appsettings", "Quitter"));
+
+    if (action == "Quitter") break;
+    if (action == "Recharger appsettings") continue;
 
     // ── Generate ────────────────────────────────────────
     var currentDate = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
@@ -149,9 +154,14 @@ while (true)
 
     services.Dispose();
 
-    // ── Relaunch? ───────────────────────────────────────
-    if (!AnsiConsole.Confirm("[yellow]Relancer une génération?[/]", defaultValue: false))
-        break;
+    // ── Post-generation menu ────────────────────────────
+    var next = AnsiConsole.Prompt(
+        new SelectionPrompt<string>()
+            .Title("[yellow]Que voulez-vous faire?[/]")
+            .AddChoices("Relancer la génération", "Recharger appsettings", "Quitter"));
+
+    if (next == "Quitter") break;
+    // Both "Relancer" and "Recharger" loop back — appsettings is always reloaded at top
 }
 
 AnsiConsole.MarkupLine("[grey]Au revoir![/]");
