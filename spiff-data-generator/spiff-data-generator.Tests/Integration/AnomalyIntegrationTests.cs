@@ -38,6 +38,9 @@ public class AnomalyIntegrationTests
         BatchSize = 100,
         PrettyPrint = false,
         OutputDir = "out/test",
+        WeightsCourrierRetenu = [50, 50],
+        WeightsImpression = [50, 50],
+        WeightsCodeProvince = [50, 50],
         Anomalies = anomalies ?? new AnomalyConfig(),
     };
 
