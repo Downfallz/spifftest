@@ -37,4 +37,19 @@ public sealed class T5Rl3Config
 
     public string GetOutputPrefix() =>
         $"{Plateforme}_{CodeSysteme}_{TypeDeclaration}_{CycleProduction}_{AnneeProduction}";
+
+    public string GetNextFilePrefix(string dateYyyymmdd)
+    {
+        var basePrefix = GetOutputPrefix();
+        Directory.CreateDirectory(OutputDir);
+
+        for (int seq = 1; seq <= 99; seq++)
+        {
+            var candidate = $"{basePrefix}_{dateYyyymmdd}{seq:D2}";
+            if (!File.Exists(Path.Combine(OutputDir, $"{candidate}.zip")))
+                return candidate;
+        }
+
+        return $"{basePrefix}_{dateYyyymmdd}99";
+    }
 }

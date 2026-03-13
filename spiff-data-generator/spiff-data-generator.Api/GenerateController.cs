@@ -57,12 +57,12 @@ public class GenerateController : ControllerBase
 
         // Generate ZIP in memory
         using var zipStream = new MemoryStream();
-        var dateString = DateTime.Today.ToString("yyyyMMdd");
+        var dateString = DateTime.Now.ToString("yyyyMMddHHmmss");
         zipExporter.ExportToStream(zipStream, dateString);
 
         sw.Stop();
 
-        var fileName = $"{config.GetOutputPrefix()}_{dateString}01.zip";
+        var fileName = $"{config.GetOutputPrefix()}_{dateString}.zip";
 
         _logger.LogInformation(
             "Génération terminée en {Elapsed}ms. Upload vers FTP...",

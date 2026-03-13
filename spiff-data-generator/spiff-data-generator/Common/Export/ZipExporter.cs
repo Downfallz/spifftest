@@ -22,10 +22,13 @@ public sealed class ZipExporter : IZipExporter
         _logger = logger;
     }
 
+    public string? LastFilePrefix { get; private set; }
+
     public void ExportToFile()
     {
         var currentDate = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-        var filePrefix = $"{_config.GetOutputPrefix()}_{currentDate}01";
+        var filePrefix = _config.GetNextFilePrefix(currentDate);
+        LastFilePrefix = filePrefix;
         var zipPath = Path.Combine(_config.OutputDir, $"{filePrefix}.zip");
         Directory.CreateDirectory(_config.OutputDir);
 

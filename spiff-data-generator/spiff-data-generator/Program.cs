@@ -95,8 +95,9 @@ while (true)
     if (action == "Recharger appsettings") continue;
 
     // ── Generate ────────────────────────────────────────
+    // Resolve next available file prefix (auto-increment 01, 02, ...)
     var currentDate = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-    var filePrefix = $"{config.GetOutputPrefix()}_{currentDate}01";
+    var filePrefix = config.GetNextFilePrefix(currentDate);
     using var logger = new FileGenerationLogger(config.OutputDir, filePrefix);
 
     var services = new ServiceCollection()
@@ -134,7 +135,9 @@ while (true)
 
     // ── Summary ─────────────────────────────────────────
     AnsiConsole.WriteLine();
-    var zipPath = Path.Combine(config.OutputDir, $"{filePrefix}.zip");
+    // Use the prefix the exporter actually wrote to (in case of race)
+    var actualPrefix = exporter.LastFilePrefix ?? filePrefix;
+    var zipPath = Path.Combine(config.OutputDir, $"{actualPrefix}.zip");
     long fileSize = File.Exists(zipPath) ? new FileInfo(zipPath).Length : 0;
 
     var summary = new Table()
@@ -147,7 +150,7 @@ while (true)
     summary.AddRow("Taille", $"{fileSize:N0} bytes ({fileSize / 1024.0 / 1024.0:F2} MB)");
     summary.AddRow("Durée", $"{sw.Elapsed.TotalSeconds:F2}s");
     summary.AddRow("Débit", $"{config.NombreLignes / sw.Elapsed.TotalSeconds:F0} lignes/sec");
-    summary.AddRow("Log", Markup.Escape(Path.Combine(config.OutputDir, $"{filePrefix}.log")));
+    summary.AddRow("Log", Markup.Escape(Path.Combine(config.OutputDir, $"{actualPrefix}.log")));
 
     AnsiConsole.Write(summary);
     AnsiConsole.WriteLine();
