@@ -14,9 +14,9 @@ public sealed class T5Rl3Config
     public int NombreLignes { get; set; } = 2_500_000;
     public int BatchSize { get; set; } = 25_000;
 
-    public int[] WeightsCourrierRetenu { get; set; } = [5, 95];
-    public int[] WeightsImpression { get; set; } = [80, 20];
-    public int[] WeightsCodeProvince { get; set; } = [70, 30];
+    public int[] WeightsCourrierRetenu { get; set; } = [];
+    public int[] WeightsImpression { get; set; } = [];
+    public int[] WeightsCodeProvince { get; set; } = [];
 
     public bool IndicateurOntario { get; set; }
     public int NombreFeuilletParCaisse { get; set; } = 999_999;
