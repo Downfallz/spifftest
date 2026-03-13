@@ -20,10 +20,10 @@ public sealed class MsLoggerGenerationLogger : IGenerationLogger
             _logger.LogInformation("  {Key} = {Value}", key, value);
     }
 
-    public void LogAnomaly(int seq, AnomalyKind kind, bool isIndividu)
+    public void LogAnomaly(int seq, AnomalyKind kind, AnomalySeverity severity, bool isIndividu)
     {
-        _logger.LogInformation("Anomalie seq={Seq} type={Type} kind={Kind}",
-            seq, isIndividu ? "Individu" : "Organisation", kind);
+        _logger.LogInformation("Anomalie seq={Seq} type={Type} severity={Severity} kind={Kind}",
+            seq, isIndividu ? "Individu" : "Organisation", severity, kind);
     }
 
     public void LogProgress(int current, int total)

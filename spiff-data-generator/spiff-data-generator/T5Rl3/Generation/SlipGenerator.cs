@@ -64,8 +64,9 @@ public sealed class SlipGenerator : ISlipGenerator
         var anomaly = _anomalyService.GetAnomalyForSequence(seq);
         if (anomaly.HasValue)
         {
-            _anomalyService.Apply(root, anomaly.Value, context.IsIndividu);
-            _logger.LogAnomaly(seq, anomaly.Value, context.IsIndividu);
+            var (kind, severity) = anomaly.Value;
+            _anomalyService.Apply(root, kind, context.IsIndividu);
+            _logger.LogAnomaly(seq, kind, severity, context.IsIndividu);
         }
 
         return root;

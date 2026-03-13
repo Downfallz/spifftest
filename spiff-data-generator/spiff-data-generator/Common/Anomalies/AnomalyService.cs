@@ -11,7 +11,7 @@ public sealed class AnomalyService : IAnomalyService
         _config = config;
     }
 
-    public AnomalyKind? GetAnomalyForSequence(int seq)
+    public (AnomalyKind Kind, AnomalySeverity Severity)? GetAnomalyForSequence(int seq)
     {
         if (!_config.Anomalies.Enabled) return null;
 
@@ -20,12 +20,12 @@ public sealed class AnomalyService : IAnomalyService
         if (seq < anomalyStart) return null;
 
         int offset = seq - anomalyStart;
-        foreach (var level in GetLevels())
+        foreach (var (level, severity) in GetLevelsWithSeverity())
         {
             if (level.Nombre <= 0 || level.Types.Length == 0) continue;
 
             if (offset < level.Nombre)
-                return level.Types[offset % level.Types.Length];
+                return (level.Types[offset % level.Types.Length], severity);
 
             offset -= level.Nombre;
         }
@@ -130,14 +130,14 @@ public sealed class AnomalyService : IAnomalyService
     // ── Private helpers ─────────────────────────────────────────
 
     private int TotalAnomalyCount() =>
-        GetLevels().Sum(l => l.Nombre);
+        GetLevelsWithSeverity().Sum(l => l.Level.Nombre);
 
-    private AnomalyLevelConfig[] GetLevels() =>
+    private (AnomalyLevelConfig Level, AnomalySeverity Severity)[] GetLevelsWithSeverity() =>
     [
-        _config.Anomalies.Bloquant,
-        _config.Anomalies.Importante,
-        _config.Anomalies.SevereImpression,
-        _config.Anomalies.Avertissement,
+        (_config.Anomalies.Bloquant, AnomalySeverity.Bloquant),
+        (_config.Anomalies.Importante, AnomalySeverity.Importante),
+        (_config.Anomalies.SevereImpression, AnomalySeverity.SevereImpression),
+        (_config.Anomalies.Avertissement, AnomalySeverity.Avertissement),
     ];
 
     private static void SetIdentificationToZeros(Dictionary<string, object>? party, int idCodType, string zeros)

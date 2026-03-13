@@ -441,8 +441,8 @@ public class AnomalyServiceTests
         var sut = new AnomalyService(config);
 
         sut.GetAnomalyForSequence(8).Should().BeNull();
-        sut.GetAnomalyForSequence(9).Should().Be(AnomalyKind.NomBeneficiaireManquant);
-        sut.GetAnomalyForSequence(10).Should().Be(AnomalyKind.CodeDeviseErrone);
+        sut.GetAnomalyForSequence(9)!.Value.Kind.Should().Be(AnomalyKind.NomBeneficiaireManquant);
+        sut.GetAnomalyForSequence(10)!.Value.Kind.Should().Be(AnomalyKind.CodeDeviseErrone);
     }
 
     [Fact]
@@ -463,8 +463,8 @@ public class AnomalyServiceTests
         };
         var sut = new AnomalyService(config);
 
-        sut.GetAnomalyForSequence(8).Should().Be(AnomalyKind.NomBeneficiaireManquant);
-        sut.GetAnomalyForSequence(9).Should().Be(AnomalyKind.NomBeneficiaireManquant);
-        sut.GetAnomalyForSequence(10).Should().Be(AnomalyKind.NomBeneficiaireManquant);
+        sut.GetAnomalyForSequence(8)!.Value.Kind.Should().Be(AnomalyKind.NomBeneficiaireManquant);
+        sut.GetAnomalyForSequence(9)!.Value.Kind.Should().Be(AnomalyKind.NomBeneficiaireManquant);
+        sut.GetAnomalyForSequence(10)!.Value.Kind.Should().Be(AnomalyKind.NomBeneficiaireManquant);
     }
 }

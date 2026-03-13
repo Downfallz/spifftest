@@ -24,10 +24,10 @@ public sealed class FileGenerationLogger : IGenerationLogger
         _writer.WriteLine();
     }
 
-    public void LogAnomaly(int seq, AnomalyKind kind, bool isIndividu)
+    public void LogAnomaly(int seq, AnomalyKind kind, AnomalySeverity severity, bool isIndividu)
     {
         string type = isIndividu ? "Individu" : "Organisation";
-        _writer.WriteLine($"[{Now()}] Anomalie seq={seq} type={type} kind={kind}");
+        _writer.WriteLine($"[{Now()}] Anomalie seq={seq} type={type} severity={severity} kind={kind}");
     }
 
     public void LogProgress(int current, int total)
