@@ -11,7 +11,7 @@ using spiff_data_generator.T5Rl3.Config;
 using spiff_data_generator.T5Rl3.Generation;
 using Xunit;
 
-namespace spiff_data_generator.Tests;
+namespace spiff_data_generator.Tests.Integration;
 
 public class AnomalyIntegrationTests
 {

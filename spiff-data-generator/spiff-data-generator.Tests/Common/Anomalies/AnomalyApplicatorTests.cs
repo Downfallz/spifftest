@@ -3,7 +3,7 @@ using spiff_data_generator.Common.Anomalies;
 using spiff_data_generator.T5Rl3.Config;
 using Xunit;
 
-namespace spiff_data_generator.Tests;
+namespace spiff_data_generator.Tests.Common.Anomalies;
 
 public class AnomalyServiceTests
 {

@@ -2,7 +2,7 @@ using FluentAssertions;
 using spiff_data_generator.Common.Anomalies;
 using Xunit;
 
-namespace spiff_data_generator.Tests;
+namespace spiff_data_generator.Tests.Common.Anomalies;
 
 public class AnomalyConfigTests
 {

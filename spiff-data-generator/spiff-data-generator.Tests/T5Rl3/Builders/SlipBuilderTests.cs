@@ -7,7 +7,7 @@ using spiff_data_generator.T5Rl3.Config;
 using spiff_data_generator.T5Rl3.Models;
 using Xunit;
 
-namespace spiff_data_generator.Tests;
+namespace spiff_data_generator.Tests.T5Rl3.Builders;
 
 public class SlipBuilderTests
 {
