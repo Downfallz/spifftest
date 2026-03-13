@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using spiff_data_generator.Common.Anomalies;
 using spiff_data_generator.Common.Export;
 using spiff_data_generator.Common.Interfaces;
+using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.Random;
 using spiff_data_generator.T5Rl3.Builders;
 using spiff_data_generator.T5Rl3.Generation;
@@ -41,8 +42,10 @@ public class GenerateController : ControllerBase
             new IndividuSlipBuilder(random),
             new OrganisationSlipBuilder(random),
         };
-        var slipGenerator = new SlipGenerator(config, random, builders, anomalyService);
-        var zipExporter = new ZipExporter(config, slipGenerator);
+        using var genLogger = new MsLoggerGenerationLogger(
+            HttpContext.RequestServices.GetRequiredService<ILogger<MsLoggerGenerationLogger>>());
+        var slipGenerator = new SlipGenerator(config, random, builders, anomalyService, genLogger);
+        var zipExporter = new ZipExporter(config, slipGenerator, genLogger);
 
         _logger.LogInformation(
             "Génération démarrée: {Lignes} lignes ({Individus} individus, {Orgs} organisations)",

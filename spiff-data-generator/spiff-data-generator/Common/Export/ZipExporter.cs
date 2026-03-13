@@ -1,4 +1,5 @@
 using spiff_data_generator.Common.Interfaces;
+using spiff_data_generator.Common.Logging;
 using spiff_data_generator.T5Rl3.Config;
 using System.Globalization;
 using System.IO.Compression;
@@ -10,11 +11,13 @@ public sealed class ZipExporter : IZipExporter
 {
     private readonly T5Rl3Config _config;
     private readonly ISlipGenerator _generator;
+    private readonly IGenerationLogger _logger;
 
-    public ZipExporter(T5Rl3Config config, ISlipGenerator generator)
+    public ZipExporter(T5Rl3Config config, ISlipGenerator generator, IGenerationLogger logger)
     {
         _config = config;
         _generator = generator;
+        _logger = logger;
     }
 
     public void ExportToFile()
@@ -24,9 +27,25 @@ public sealed class ZipExporter : IZipExporter
         var zipPath = Path.Combine(_config.OutputDir, $"{filePrefix}.zip");
         Directory.CreateDirectory(_config.OutputDir);
 
+        _logger.LogConfig(new Dictionary<string, object>
+        {
+            ["NombreLignes"] = _config.NombreLignes,
+            ["NombreIndividus"] = _config.NombreIndividus,
+            ["NombreOrganisations"] = _config.NombreLignes - _config.NombreIndividus,
+            ["BatchSize"] = _config.BatchSize,
+            ["Seed"] = _config.Seed,
+            ["IndicateurOntario"] = _config.IndicateurOntario,
+            ["AjouterEmetteurFourni"] = _config.AjouterEmetteurFourni,
+            ["AjouterIdUnique"] = _config.AjouterIdUnique,
+            ["AnomaliesEnabled"] = _config.Anomalies.Enabled,
+            ["OutputFile"] = zipPath,
+        });
+
         using var fs = new FileStream(zipPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
         ExportToStream(fs, currentDate);
-        Console.WriteLine($"ZIP généré: {zipPath}");
+
+        var fileSize = new FileInfo(zipPath).Length;
+        Console.WriteLine($"ZIP généré: {zipPath} ({fileSize:N0} bytes)");
     }
 
     public void ExportToStream(Stream output, string? yyyymmdd = null)
@@ -42,12 +61,15 @@ public sealed class ZipExporter : IZipExporter
 
             WriteBatch(zip, jsonFileIndex, startSeq, endSeq);
             jsonFileIndex++;
-            PrintProgress(endSeq - 1, _config.NombreLignes);
+
+            int current = endSeq - 1;
+            _logger.LogProgress(current, _config.NombreLignes);
+            PrintProgress(current, _config.NombreLignes);
         }
 
-        var endTime = DateTime.Now;
-        Console.WriteLine($"Génération terminée à: {endTime:HH:mm:ss}");
-        Console.WriteLine($"Durée totale: {endTime - startTime}");
+        var duration = DateTime.Now - startTime;
+        _logger.LogComplete(duration, output.CanSeek ? output.Length : null);
+        Console.WriteLine($"Génération terminée. Durée: {duration}");
     }
 
     private void WriteBatch(ZipArchive zip, int fileIndex, int startSeq, int endSeq)

@@ -2,6 +2,7 @@ using System.Globalization;
 
 using spiff_data_generator.Common.Anomalies;
 using spiff_data_generator.Common.Interfaces;
+using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.Random;
 using spiff_data_generator.T5Rl3.Config;
 using spiff_data_generator.T5Rl3.Models;
@@ -14,17 +15,20 @@ public sealed class SlipGenerator : ISlipGenerator
     private readonly IRandomService _random;
     private readonly IEnumerable<ISlipBuilder> _builders;
     private readonly IAnomalyService _anomalyService;
+    private readonly IGenerationLogger _logger;
 
     public SlipGenerator(
         T5Rl3Config config,
         IRandomService random,
         IEnumerable<ISlipBuilder> builders,
-        IAnomalyService anomalyService)
+        IAnomalyService anomalyService,
+        IGenerationLogger logger)
     {
         _config = config;
         _random = random;
         _builders = builders;
         _anomalyService = anomalyService;
+        _logger = logger;
     }
 
     public Dictionary<string, object> Generate(int seq)
@@ -59,7 +63,10 @@ public sealed class SlipGenerator : ISlipGenerator
 
         var anomaly = _anomalyService.GetAnomalyForSequence(seq);
         if (anomaly.HasValue)
+        {
             _anomalyService.Apply(root, anomaly.Value, context.IsIndividu);
+            _logger.LogAnomaly(seq, anomaly.Value, context.IsIndividu);
+        }
 
         return root;
     }
