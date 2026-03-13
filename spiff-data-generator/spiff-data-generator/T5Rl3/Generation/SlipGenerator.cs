@@ -36,6 +36,27 @@ public sealed class SlipGenerator : ISlipGenerator
 
         var root = builder.Build(context);
 
+        // Ajout émetteur fourni au feuillet
+        if (_config.AjouterEmetteurFourni)
+        {
+            var info = (Dictionary<string, object>)root["information"];
+            var parties = (List<object>)info["parties"];
+            var party = (Dictionary<string, object>)parties[0];
+            var identification = (List<object>)party["identificationPartie"];
+            identification.Add(new Dictionary<string, object>
+            {
+                ["idCodTypeIdentificationPartie"] = 5,
+                ["numIdentificationPartie"] = context.NumTransit
+            });
+        }
+
+        // Ajout identification unique du feuillet (règle RS-IMPORT-CORRECTIF)
+        if (_config.AjouterIdUnique)
+        {
+            var info = (Dictionary<string, object>)root["information"];
+            info["numIdentificationUnique"] = $"{_config.PrefixeIdentificationUnique}{seq}";
+        }
+
         var anomaly = _anomalyService.GetAnomalyForSequence(seq);
         if (anomaly.HasValue)
             _anomalyService.Apply(root, anomaly.Value, context.IsIndividu);

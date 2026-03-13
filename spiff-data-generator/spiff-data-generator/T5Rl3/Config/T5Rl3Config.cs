@@ -23,6 +23,10 @@ public sealed class T5Rl3Config
     public bool IndicateurOntario { get; set; }
     public int NombreFeuilletParCaisse { get; set; } = 999_999;
 
+    public bool AjouterEmetteurFourni { get; set; }
+    public bool AjouterIdUnique { get; set; }
+    public string PrefixeIdentificationUnique { get; set; } = "";
+
     public string[] Devises { get; set; } =
         ["CAD", "USD", "AUD", "DKK", "EUR", "GBP", "HKD", "JPY", "NZD"];
 

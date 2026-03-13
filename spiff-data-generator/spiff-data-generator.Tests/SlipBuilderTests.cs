@@ -87,8 +87,9 @@ public class SlipBuilderTests
         var result = builder.Build(QcIndividuContext());
 
         result.Should().ContainKey("information");
-        result.Should().ContainKey("documents");
         result.Should().ContainKey("contenu");
+        var info = (Dictionary<string, object>)result["information"];
+        info.Should().ContainKey("documents");
     }
 
     [Fact]
@@ -100,7 +101,7 @@ public class SlipBuilderTests
         var result = builder.Build(QcIndividuContext());
         var info = (Dictionary<string, object>)result["information"];
 
-        info["codFormulaire"].Should().Be("T5RL3");
+        info["codFormulaireReleve"].Should().Be("T5RL3");
         info["codLangue"].Should().Be("F");
     }
 
@@ -131,7 +132,7 @@ public class SlipBuilderTests
         var contenu = (Dictionary<string, object>)result["contenu"];
         var cases = (List<object>)contenu["cases"];
 
-        cases.Should().HaveCountGreaterOrEqualTo(4); // 13, 2B, 28, D, Succ
+        cases.Should().HaveCountGreaterOrEqualTo(4); // 13, 28, 29, D, Succ
     }
 
     // ========== OrganisationSlipBuilder ==========

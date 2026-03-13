@@ -25,17 +25,17 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
         {
             ["information"] = new Dictionary<string, object>
             {
-                ["codFormulaire"] = context.IsQc ? "T5RL3" : "T5",
+                ["codFormulaireReleve"] = context.IsQc ? "T5RL3" : "T5",
                 ["codLangue"] = context.Langue,
                 ["codDevise"] = context.Devise,
                 ["typImpression"] = context.TypImpression,
-                ["holdMailIndicateur"] = context.HoldMail,
-                ["numIdentification"] = context.NumTransit,
+                ["holdMail"] = context.HoldMail,
+                ["numIdentificationEmetteur"] = context.NumTransit,
                 ["parties"] = new List<object>
                 {
                     new Dictionary<string, object>
                     {
-                        ["isCodSousTypePartie"] = 1,
+                        ["idCodSousTypePartie"] = 1,
                         ["idCodRoleRelevePartie"] = 1,
                         ["idCodTypeRoleRelevePartie"] = 1,
                         ["identificationPartie"] = new List<object>
@@ -55,11 +55,11 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
                         ["nomFamille"] = nom,
                         ["nomInitiale"] = prenom.Length > 0 ? prenom[..1] : "",
                         ["adresseFiscale"] = BuildAdresse(context),
-                        ["indAdrFiscalePostaleIdentique"] = true,
+                        ["indAdFiscalePostaleIdentique"] = true,
                     }
-                }
+                },
+                ["documents"] = BuildDocuments(context)
             },
-            ["documents"] = BuildDocuments(context),
             ["contenu"] = new Dictionary<string, object>
             {
                 ["cases"] = CaseBuilder.Build(context)
@@ -76,8 +76,8 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
             ["nomMunicipalite"] = _random.City(),
             ["numUnite"] = _random.SecondaryAddress(),
             ["codProvince"] = context.Province,
+            ["codPaysIso"] = context.Pays,
             ["numCodePostal"] = _random.GenerateCanadianPostalCode(context.Province).Replace(" ", ""),
-            ["codePaysIso"] = context.Pays,
         };
     }
 
@@ -107,7 +107,7 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
                     new Dictionary<string, object>
                     {
                         ["codTypeMetadonneeDocument"] = "numIdentifiantFolio",
-                        ["valMetadonneeDocument"] = context.NumTransit.PadLeft(7, '0')
+                        ["valMetadonneeDocument"] = context.NumCompte.PadLeft(7, '0')
                     },
                     new Dictionary<string, object>
                     {

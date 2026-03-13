@@ -50,7 +50,7 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
                         ["nomOrganisationLign1"] = nom1,
                         ["nomOrganisationLign2"] = nom2,
                         ["adresseFiscale"] = BuildAdresse(context),
-                        ["indicateurAdresseFiscalePostalIdentique"] = true,
+                        ["indAdFiscalePostaleIdentique"] = true,
                     }
                 },
                 ["documents"] = documents
@@ -83,30 +83,40 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
             });
         }
 
-        if (context.IsQc)
+        if (genre == OrganisationType.Fiducie)
         {
-            identification.Add(new Dictionary<string, object>
-            {
-                ["idCodTypeIdentificationPartie"] = 6, // NEQ
-                ["numIdentificationPartie"] = neq
-            });
-        }
-        else if (genre == OrganisationType.Fiducie)
-        {
-            identification.Add(new Dictionary<string, object>
-            {
-                ["idCodTypeIdentificationPartie"] = 8, // FID
-                ["numIdentificationPartie"] = fid
-            });
-
             if (context.IsQc)
             {
+                // Fiducie QC: NEQ + NI
+                identification.Add(new Dictionary<string, object>
+                {
+                    ["idCodTypeIdentificationPartie"] = 6, // NEQ
+                    ["numIdentificationPartie"] = neq
+                });
                 identification.Add(new Dictionary<string, object>
                 {
                     ["idCodTypeIdentificationPartie"] = 7, // NI
                     ["numIdentificationPartie"] = ni
                 });
             }
+            else
+            {
+                // Fiducie hors QC: FID
+                identification.Add(new Dictionary<string, object>
+                {
+                    ["idCodTypeIdentificationPartie"] = 8, // FID
+                    ["numIdentificationPartie"] = fid
+                });
+            }
+        }
+        else if (context.IsQc)
+        {
+            // Non-Fiducie QC: NEQ seulement
+            identification.Add(new Dictionary<string, object>
+            {
+                ["idCodTypeIdentificationPartie"] = 6, // NEQ
+                ["numIdentificationPartie"] = neq
+            });
         }
 
         return identification;
@@ -138,7 +148,7 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
             },
         };
 
-        if (genre == OrganisationType.Fiducie && !context.IsQc)
+        if (genre == OrganisationType.Fiducie)
         {
             metadonnees.Add(new Dictionary<string, object>
             {

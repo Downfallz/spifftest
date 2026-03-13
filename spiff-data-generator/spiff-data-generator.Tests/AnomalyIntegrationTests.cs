@@ -135,7 +135,7 @@ public class AnomalyIntegrationTests
         var organisation = generator.Generate(6); // seq 6 > 5 individus
 
         individu.Should().ContainKey("information");
-        ((Dictionary<string, object>)individu["information"]).Should().ContainKey("codFormulaire");
+        ((Dictionary<string, object>)individu["information"]).Should().ContainKey("codFormulaireReleve");
 
         organisation.Should().ContainKey("information");
         ((Dictionary<string, object>)organisation["information"]).Should().ContainKey("codFormulaireReleve");
