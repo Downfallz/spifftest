@@ -114,28 +114,52 @@ while (true)
     var exporter = services.GetRequiredService<IZipExporter>();
 
     var sw = System.Diagnostics.Stopwatch.StartNew();
+    Exception? genError = null;
 
-    AnsiConsole.Progress()
-        .AutoClear(true)
-        .Columns(
-            new TaskDescriptionColumn(),
-            new ProgressBarColumn(),
-            new PercentageColumn(),
-            new SpinnerColumn())
-        .Start(ctx =>
-        {
-            var task = ctx.AddTask($"[green]Génération ({config.NombreLignes:N0} lignes)[/]",
-                maxValue: config.NombreLignes);
-            exporter.OnProgress = (current, _) => task.Value = current;
-            exporter.ExportToFile();
-            task.Value = config.NombreLignes;
-        });
+    try
+    {
+        AnsiConsole.Progress()
+            .AutoClear(true)
+            .Columns(
+                new TaskDescriptionColumn(),
+                new ProgressBarColumn(),
+                new PercentageColumn(),
+                new SpinnerColumn())
+            .Start(ctx =>
+            {
+                var task = ctx.AddTask($"[green]Génération ({config.NombreLignes:N0} lignes)[/]",
+                    maxValue: config.NombreLignes);
+                exporter.OnProgress = (current, _) => task.Value = current;
+                exporter.ExportToFile();
+                task.Value = config.NombreLignes;
+            });
+    }
+    catch (Exception ex)
+    {
+        genError = ex;
+    }
 
     sw.Stop();
 
+    if (genError != null)
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.Write(new Panel(
+            new Text(genError.Message, new Style(Color.White))
+            )
+            .Header("[bold red]Erreur lors de la génération[/]")
+            .Border(BoxBorder.Heavy)
+            .BorderColor(Color.Red));
+        AnsiConsole.MarkupLine($"[grey]{Markup.Escape(genError.GetType().Name)}[/]");
+        if (genError.InnerException != null)
+            AnsiConsole.MarkupLine($"[grey]  → {Markup.Escape(genError.InnerException.Message)}[/]");
+        AnsiConsole.WriteLine();
+        services.Dispose();
+        continue;
+    }
+
     // ── Summary ─────────────────────────────────────────
     AnsiConsole.WriteLine();
-    // Use the prefix the exporter actually wrote to (in case of race)
     var actualPrefix = exporter.LastFilePrefix ?? filePrefix;
     var zipPath = Path.Combine(config.OutputDir, $"{actualPrefix}.zip");
     long fileSize = File.Exists(zipPath) ? new FileInfo(zipPath).Length : 0;
@@ -151,6 +175,15 @@ while (true)
     summary.AddRow("Durée", $"{sw.Elapsed.TotalSeconds:F2}s");
     summary.AddRow("Débit", $"{config.NombreLignes / sw.Elapsed.TotalSeconds:F0} lignes/sec");
     summary.AddRow("Log", Markup.Escape(Path.Combine(config.OutputDir, $"{actualPrefix}.log")));
+
+    if (config.Anomalies.Enabled)
+    {
+        summary.AddEmptyRow();
+        AddAnomalySummaryRow(summary, "Bloquant", config.Anomalies.Bloquant);
+        AddAnomalySummaryRow(summary, "Importante", config.Anomalies.Importante);
+        AddAnomalySummaryRow(summary, "Sévère impression", config.Anomalies.SevereImpression);
+        AddAnomalySummaryRow(summary, "Avertissement", config.Anomalies.Avertissement);
+    }
 
     AnsiConsole.Write(summary);
     AnsiConsole.WriteLine();
@@ -185,4 +218,10 @@ static void AddAnomalyRow(Table table, string label, AnomalyLevelConfig level)
     {
         table.AddRow($"  {label}", "[grey]0[/]");
     }
+}
+
+static void AddAnomalySummaryRow(Table table, string label, AnomalyLevelConfig level)
+{
+    if (level.Nombre > 0)
+        table.AddRow($"[red]Anomalies {label}[/]", $"{level.Nombre} appliquées");
 }

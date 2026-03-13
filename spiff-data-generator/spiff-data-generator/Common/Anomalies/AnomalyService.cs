@@ -94,7 +94,6 @@ public sealed class AnomalyService : IAnomalyService
 
             // ── Sévère impression (adresse) ─────────────────────
             case AnomalyKind.CodePostalManquant:
-                ClearAdresseField(adresse, "numCodePostal");
                 ClearAdresseField(adresse, "numCodPostal");
                 break;
 
@@ -116,7 +115,6 @@ public sealed class AnomalyService : IAnomalyService
                 break;
 
             case AnomalyKind.CodePaysManquant:
-                ClearAdresseField(adresse, "codePaysIso");
                 ClearAdresseField(adresse, "codPaysIso");
                 break;
 
