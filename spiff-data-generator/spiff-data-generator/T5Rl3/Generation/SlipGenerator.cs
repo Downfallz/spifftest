@@ -96,9 +96,10 @@ public sealed class SlipGenerator : ISlipGenerator
             : Constants.TransitNumbers;
         string numTransit = transitArray[transitIndex % transitArray.Length];
 
-        string numCompte = (seq % 999_999 == 0)
-            ? "999999"
-            : (seq % 999_999).ToString("D6", CultureInfo.InvariantCulture);
+        int maxFeuillet = _config.NombreFeuilletParCaisse;
+        string numCompte = (seq % maxFeuillet == 0)
+            ? maxFeuillet.ToString($"D{maxFeuillet.ToString().Length}", CultureInfo.InvariantCulture)
+            : (seq % maxFeuillet).ToString($"D{maxFeuillet.ToString().Length}", CultureInfo.InvariantCulture);
 
         return new SlipContext(
             NumTransit: numTransit,

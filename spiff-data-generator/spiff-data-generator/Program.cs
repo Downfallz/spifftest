@@ -95,67 +95,99 @@ while (true)
     if (action == "Recharger appsettings") continue;
 
     // ── Generate ────────────────────────────────────────
-    // Resolve next available file prefix (auto-increment 01, 02, ...)
-    var currentDate = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-    var filePrefix = config.GetNextFilePrefix(currentDate);
-    using var logger = new FileGenerationLogger(config.OutputDir, filePrefix);
+    try
+    {
+        // Resolve next available file prefix (auto-increment 01, 02, ...)
+        var currentDate = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+        var filePrefix = config.GetNextFilePrefix(currentDate);
+        using var logger = new FileGenerationLogger(config.OutputDir, filePrefix);
 
-    var services = new ServiceCollection()
-        .AddSingleton(config)
-        .AddSingleton<IGenerationLogger>(logger)
-        .AddSingleton<IRandomService, RandomService>()
-        .AddSingleton<ISlipBuilder, IndividuSlipBuilder>()
-        .AddSingleton<ISlipBuilder, OrganisationSlipBuilder>()
-        .AddSingleton<IAnomalyService, AnomalyService>()
-        .AddSingleton<ISlipGenerator, SlipGenerator>()
-        .AddSingleton<IZipExporter, ZipExporter>()
-        .BuildServiceProvider();
+        var services = new ServiceCollection()
+            .AddSingleton(config)
+            .AddSingleton<IGenerationLogger>(logger)
+            .AddSingleton<IRandomService, RandomService>()
+            .AddSingleton<ISlipBuilder, IndividuSlipBuilder>()
+            .AddSingleton<ISlipBuilder, OrganisationSlipBuilder>()
+            .AddSingleton<IAnomalyService, AnomalyService>()
+            .AddSingleton<ISlipGenerator, SlipGenerator>()
+            .AddSingleton<IZipExporter, ZipExporter>()
+            .BuildServiceProvider();
 
-    var exporter = services.GetRequiredService<IZipExporter>();
+        var exporter = services.GetRequiredService<IZipExporter>();
 
-    var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sw = System.Diagnostics.Stopwatch.StartNew();
 
-    AnsiConsole.Progress()
-        .AutoClear(true)
-        .Columns(
-            new TaskDescriptionColumn(),
-            new ProgressBarColumn(),
-            new PercentageColumn(),
-            new SpinnerColumn())
-        .Start(ctx =>
+        AnsiConsole.Progress()
+            .AutoClear(true)
+            .Columns(
+                new TaskDescriptionColumn(),
+                new ProgressBarColumn(),
+                new PercentageColumn(),
+                new SpinnerColumn())
+            .Start(ctx =>
+            {
+                var task = ctx.AddTask($"[green]Génération ({config.NombreLignes:N0} lignes)[/]",
+                    maxValue: config.NombreLignes);
+                exporter.OnProgress = (current, _) => task.Value = current;
+                exporter.ExportToFile();
+                task.Value = config.NombreLignes;
+            });
+
+        sw.Stop();
+
+        // ── Summary ─────────────────────────────────────────
+        AnsiConsole.WriteLine();
+        // Use the prefix the exporter actually wrote to (in case of race)
+        var actualPrefix = exporter.LastFilePrefix ?? filePrefix;
+        var zipPath = Path.Combine(config.OutputDir, $"{actualPrefix}.zip");
+        long fileSize = File.Exists(zipPath) ? new FileInfo(zipPath).Length : 0;
+
+        var summary = new Table()
+            .Border(TableBorder.Rounded)
+            .Title("[bold green]Génération terminée[/]")
+            .AddColumn("[bold]Info[/]")
+            .AddColumn("[bold]Valeur[/]");
+
+        summary.AddRow("Fichier", Markup.Escape(zipPath));
+        summary.AddRow("Taille", $"{fileSize:N0} bytes ({fileSize / 1024.0 / 1024.0:F2} MB)");
+        summary.AddRow("Durée", $"{sw.Elapsed.TotalSeconds:F2}s");
+        summary.AddRow("Débit", $"{config.NombreLignes / sw.Elapsed.TotalSeconds:F0} lignes/sec");
+        summary.AddRow("Log", Markup.Escape(Path.Combine(config.OutputDir, $"{actualPrefix}.log")));
+
+        // Anomaly breakdown
+        if (config.Anomalies.Enabled)
         {
-            var task = ctx.AddTask($"[green]Génération ({config.NombreLignes:N0} lignes)[/]",
-                maxValue: config.NombreLignes);
-            exporter.OnProgress = (current, _) => task.Value = current;
-            exporter.ExportToFile();
-            task.Value = config.NombreLignes;
-        });
+            int blq = config.Anomalies.Bloquant.Nombre;
+            int imp = config.Anomalies.Importante.Nombre;
+            int sev = config.Anomalies.SevereImpression.Nombre;
+            int avr = config.Anomalies.Avertissement.Nombre;
+            int tot = blq + imp + sev + avr;
+            summary.AddEmptyRow();
+            summary.AddRow("[red]Anomalies appliquées[/]", $"[bold]{tot}[/]");
+            if (blq > 0) summary.AddRow("  Bloquant", $"{blq}");
+            if (imp > 0) summary.AddRow("  Importante", $"{imp}");
+            if (sev > 0) summary.AddRow("  Sévère impression", $"{sev}");
+            if (avr > 0) summary.AddRow("  Avertissement", $"{avr}");
+        }
 
-    sw.Stop();
+        AnsiConsole.Write(summary);
+        AnsiConsole.WriteLine();
 
-    // ── Summary ─────────────────────────────────────────
-    AnsiConsole.WriteLine();
-    // Use the prefix the exporter actually wrote to (in case of race)
-    var actualPrefix = exporter.LastFilePrefix ?? filePrefix;
-    var zipPath = Path.Combine(config.OutputDir, $"{actualPrefix}.zip");
-    long fileSize = File.Exists(zipPath) ? new FileInfo(zipPath).Length : 0;
-
-    var summary = new Table()
-        .Border(TableBorder.Rounded)
-        .Title("[bold green]Génération terminée[/]")
-        .AddColumn("[bold]Info[/]")
-        .AddColumn("[bold]Valeur[/]");
-
-    summary.AddRow("Fichier", Markup.Escape(zipPath));
-    summary.AddRow("Taille", $"{fileSize:N0} bytes ({fileSize / 1024.0 / 1024.0:F2} MB)");
-    summary.AddRow("Durée", $"{sw.Elapsed.TotalSeconds:F2}s");
-    summary.AddRow("Débit", $"{config.NombreLignes / sw.Elapsed.TotalSeconds:F0} lignes/sec");
-    summary.AddRow("Log", Markup.Escape(Path.Combine(config.OutputDir, $"{actualPrefix}.log")));
-
-    AnsiConsole.Write(summary);
-    AnsiConsole.WriteLine();
-
-    services.Dispose();
+        services.Dispose();
+    }
+    catch (Exception ex)
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.Write(new Panel(
+                new Text(ex.Message, new Style(Color.White)))
+            .Header("[bold red]Erreur lors de la génération[/]")
+            .BorderColor(Color.Red)
+            .Padding(1, 1));
+        AnsiConsole.MarkupLine($"[grey]{Markup.Escape(ex.GetType().FullName ?? ex.GetType().Name)}[/]");
+        if (ex.StackTrace != null)
+            AnsiConsole.MarkupLine($"[grey]{Markup.Escape(ex.StackTrace)}[/]");
+        AnsiConsole.WriteLine();
+    }
 
     // ── Post-generation menu ────────────────────────────
     var next = AnsiConsole.Prompt(

@@ -49,7 +49,7 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
                         ["identificationPartie"] = identification,
                         ["nomOrganisationLign1"] = nom1,
                         ["nomOrganisationLign2"] = nom2,
-                        ["adresseFiscale"] = BuildAdresse(context),
+                        ["adresseFiscale"] = AdresseHelper.BuildAdresse(_random, context),
                         ["indAdFiscalePostaleIdentique"] = true,
                     }
                 },
@@ -161,22 +161,9 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
         [
             new Dictionary<string, object>
             {
-                ["metaDonneesDocument"] = metadonnees
+                ["metadonneesDocument"] = metadonnees
             }
         ];
     }
 
-    private Dictionary<string, object> BuildAdresse(SlipContext context)
-    {
-        return new Dictionary<string, object>
-        {
-            ["numCivique"] = _random.BuildingNumber(),
-            ["nomRue"] = _random.StreetName(),
-            ["nomMunicipalite"] = _random.City(),
-            ["numUnite"] = _random.SecondaryAddress(),
-            ["codProvince"] = context.Province,
-            ["codPaysIso"] = context.Pays,
-            ["numCodPostal"] = _random.GenerateCanadianPostalCode(context.Province).Replace(" ", ""),
-        };
-    }
 }
