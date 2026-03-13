@@ -1,0 +1,67 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace spiff_data_generator.Api;
+
+public sealed class GenerateRequest
+{
+    [Range(1, 10_000_000)]
+    public int NombreIndividus { get; set; } = 500;
+
+    [Range(1, 10_000_000)]
+    public int NombreLignes { get; set; } = 1000;
+
+    [Range(1, 100_000)]
+    public int BatchSize { get; set; } = 1000;
+
+    public int Seed { get; set; }
+
+    public string Plateforme { get; set; } = "SPIFF";
+    public string CodeSysteme { get; set; } = "D10815";
+    public string TypeDeclaration { get; set; } = "O";
+    public string CycleProduction { get; set; } = "A";
+    public string AnneeProduction { get; set; } = "2026";
+
+    public int[] WeightsCourrierRetenu { get; set; } = [5, 95];
+    public int[] WeightsImpression { get; set; } = [80, 20];
+    public int[] WeightsCodeProvince { get; set; } = [70, 30];
+
+    public bool IndicateurOntario { get; set; }
+    public int NombreFeuilletParCaisse { get; set; } = 999_999;
+
+    public string[] Devises { get; set; } =
+        ["CAD", "USD", "AUD", "DKK", "EUR", "GBP", "HKD", "JPY", "NZD"];
+
+    public bool PrettyPrint { get; set; }
+
+    public AnomalyConfig? Anomalies { get; set; }
+
+    // FTP
+    public string FtpPath { get; set; } = "out/ftp";
+
+    [Range(1, 10)]
+    public int FtpRetryCount { get; set; } = 3;
+
+    [Range(1, 60)]
+    public int FtpDelaiSeconds { get; set; } = 5;
+
+    public T5Rl3Config ToConfig() => new()
+    {
+        Plateforme = Plateforme,
+        CodeSysteme = CodeSysteme,
+        TypeDeclaration = TypeDeclaration,
+        CycleProduction = CycleProduction,
+        AnneeProduction = AnneeProduction,
+        Seed = Seed,
+        NombreIndividus = NombreIndividus,
+        NombreLignes = NombreLignes,
+        BatchSize = BatchSize,
+        WeightsCourrierRetenu = WeightsCourrierRetenu,
+        WeightsImpression = WeightsImpression,
+        WeightsCodeProvince = WeightsCodeProvince,
+        IndicateurOntario = IndicateurOntario,
+        NombreFeuilletParCaisse = NombreFeuilletParCaisse,
+        Devises = Devises,
+        PrettyPrint = PrettyPrint,
+        Anomalies = Anomalies ?? new AnomalyConfig(),
+    };
+}
