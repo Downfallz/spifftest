@@ -26,8 +26,10 @@ public class GenerateController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(GenerateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Generate([FromBody] GenerateRequest request)
+    public async Task<IActionResult> Generate([FromBody] GenerateRequest? request = null)
     {
+        request ??= new GenerateRequest();
+
         if (request.NombreIndividus > request.NombreLignes)
             return BadRequest("NombreIndividus ne peut pas dépasser NombreLignes.");
 
