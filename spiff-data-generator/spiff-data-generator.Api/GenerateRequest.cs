@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using spiff_data_generator.Common.Anomalies;
+using spiff_data_generator.Common.Constraints;
 using spiff_data_generator.T5Rl3.Config;
 
 namespace spiff_data_generator.Api;
@@ -114,6 +115,13 @@ public sealed class GenerateRequest
     /// </summary>
     public AnomalyConfig? Anomalies { get; set; }
 
+    /// <summary>
+    /// Configuration de la matrice de contraintes. Si null ou Enabled=false,
+    /// aucun score de contrainte n'est calculé ni inclus dans les feuillets.
+    /// Permet d'évaluer l'effort organisationnel requis par profil de feuillet.
+    /// </summary>
+    public ConstraintConfig? Contraintes { get; set; }
+
     /// <summary>Chemin FTP (mock = disque local). Default: "out/ftp"</summary>
     [DefaultValue("out/ftp")]
     public string FtpPath { get; set; } = "out/ftp";
@@ -150,5 +158,6 @@ public sealed class GenerateRequest
         Devises = Devises,
         PrettyPrint = PrettyPrint,
         Anomalies = Anomalies ?? new AnomalyConfig(),
+        Contraintes = Contraintes ?? new ConstraintConfig(),
     };
 }

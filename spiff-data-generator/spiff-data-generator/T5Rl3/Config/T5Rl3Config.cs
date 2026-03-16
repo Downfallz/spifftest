@@ -1,4 +1,5 @@
 using spiff_data_generator.Common.Anomalies;
+using spiff_data_generator.Common.Constraints;
 
 namespace spiff_data_generator.T5Rl3.Config;
 
@@ -34,6 +35,8 @@ public sealed class T5Rl3Config
     public bool PrettyPrint { get; set; } = true;
 
     public AnomalyConfig Anomalies { get; set; } = new();
+
+    public ConstraintConfig Contraintes { get; set; } = new();
 
     public string GetOutputPrefix() =>
         $"{Plateforme}_{CodeSysteme}_{TypeDeclaration}_{CycleProduction}_{AnneeProduction}";

@@ -1,6 +1,7 @@
 using System.Globalization;
 
 using spiff_data_generator.Common.Anomalies;
+using spiff_data_generator.Common.Constraints;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.RandomGen;
@@ -69,6 +70,18 @@ public sealed class SlipGenerator : ISlipGenerator
             _logger.LogAnomaly(seq, kind, severity, context.IsIndividu);
         }
 
+        // Ajouter le profil de contrainte si activé
+        if (_config.Contraintes.Enabled && context.Contrainte is not null)
+        {
+            root["contrainte"] = new Dictionary<string, object>
+            {
+                ["score"] = context.Contrainte.Score,
+                ["niveau"] = context.Contrainte.Niveau.ToString(),
+                ["details"] = context.Contrainte.Details
+                    .ToDictionary(kv => kv.Key.ToString(), kv => (object)kv.Value),
+            };
+        }
+
         return root;
     }
 
@@ -101,7 +114,9 @@ public sealed class SlipGenerator : ISlipGenerator
             ? maxFeuillet.ToString($"D{maxFeuillet.ToString().Length}", CultureInfo.InvariantCulture)
             : (seq % maxFeuillet).ToString($"D{maxFeuillet.ToString().Length}", CultureInfo.InvariantCulture);
 
-        return new SlipContext(
+        var devise = _random.RandomChoice(_config.Devises);
+
+        var context = new SlipContext(
             NumTransit: numTransit,
             NumCompte: numCompte,
             Province: province,
@@ -110,9 +125,17 @@ public sealed class SlipGenerator : ISlipGenerator
             Pays: "CAN",
             TypImpression: typImpression,
             HoldMail: holdMail,
-            Devise: _random.RandomChoice(_config.Devises),
+            Devise: devise,
             Case13: _random.RandomDecimal(1, 8, 2),
             CaseD: _random.RandomDecimal(1, 8, 2),
             IsIndividu: isIndividu);
+
+        if (_config.Contraintes.Enabled)
+        {
+            var contrainte = ConstraintMatrix.Evaluate(context, _config.Contraintes);
+            context = context with { Contrainte = contrainte };
+        }
+
+        return context;
     }
 }
