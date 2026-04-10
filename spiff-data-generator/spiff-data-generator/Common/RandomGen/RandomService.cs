@@ -34,6 +34,8 @@ public sealed class RandomService : IRandomService
             throw new ArgumentException("values/weights length mismatch");
 
         int total = weights.Sum();
+        if (total <= 0)
+            throw new ArgumentException("Sum of weights must be greater than zero");
         int pick = _rng.Next(total);
         int cumulative = 0;
         for (int i = 0; i < vals.Count; i++)

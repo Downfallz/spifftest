@@ -24,8 +24,8 @@ public class AnomalyServiceTests
         string codDevise = "CAD",
         string codLangue = "F",
         string codProvince = "QC",
-        string numCodePostal = "G1K2A3",
-        string codePaysIso = "CAN",
+        string numCodPostal = "G1K2A3",
+        string codPaysIso = "CAN",
         string nomRue = "RUE PRINCIPALE",
         string numCivique = "123",
         string nomMunicipalite = "QUEBEC",
@@ -70,8 +70,8 @@ public class AnomalyServiceTests
                             ["nomMunicipalite"] = nomMunicipalite,
                             ["numUnite"] = "APT 2",
                             ["codProvince"] = codProvince,
-                            ["numCodePostal"] = numCodePostal,
-                            ["codePaysIso"] = codePaysIso,
+                            ["numCodPostal"] = numCodPostal,
+                            ["codPaysIso"] = codPaysIso,
                         },
                     }
                 }
@@ -323,7 +323,7 @@ public class AnomalyServiceTests
     {
         var root = BuildIndividuRoot();
         _sut.Apply(root, AnomalyKind.CodePostalManquant, isIndividu: true);
-        GetAdresse(root)["numCodePostal"].Should().Be("");
+        GetAdresse(root)["numCodPostal"].Should().Be("");
     }
 
     [Fact]
@@ -366,7 +366,7 @@ public class AnomalyServiceTests
     {
         var root = BuildIndividuRoot();
         _sut.Apply(root, AnomalyKind.CodePaysManquant, isIndividu: true);
-        GetAdresse(root)["codePaysIso"].Should().Be("");
+        GetAdresse(root)["codPaysIso"].Should().Be("");
     }
 
     [Fact]
