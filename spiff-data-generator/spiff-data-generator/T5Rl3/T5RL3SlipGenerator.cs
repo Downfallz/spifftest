@@ -48,7 +48,7 @@ public sealed class T5RL3SlipGenerator : ISlipGenerator
             var identification = (List<object>)party["identificationPartie"];
             identification.Add(new Dictionary<string, object>
             {
-                ["idCodTypeIdentificationPartie"] = 5,
+                ["idCodTypeIdentificationPartie"] = Constants.IdTypeEmetteur,
                 ["numIdentificationPartie"] = context.NumTransit
             });
         }

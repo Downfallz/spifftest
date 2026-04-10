@@ -1,12 +1,8 @@
 ﻿using Spectre.Console;
+using spiff_data_generator.Common;
 using spiff_data_generator.Common.Anomalies;
 using spiff_data_generator.Common.Config;
 using spiff_data_generator.Common.Export;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace spiff_data_generator;
 public static class ConsoleUi
@@ -21,15 +17,15 @@ public static class ConsoleUi
     {
         var menu = new SelectionPrompt<string>()
             .Title("[yellow]Que voulez-vous faire?[/]")
-            .AddChoices("Générer", "Ouvrir le fichier de config", "Quitter");
+            .AddChoices(UiActions.Generate, UiActions.OpenConfig, UiActions.Quit);
 
         if (!string.IsNullOrEmpty(zip))
         {
-            menu.AddChoice("Ouvrir le dernier fichier généré");
+            menu.AddChoice(UiActions.OpenLastZip);
         }
         if (!string.IsNullOrEmpty(dir))
         {
-            menu.AddChoice("Ouvrir le dossier de sortie");
+            menu.AddChoice(UiActions.OpenOutputDir);
         }
         return AnsiConsole.Prompt(menu);
     }
@@ -37,28 +33,27 @@ public static class ConsoleUi
     public static bool PostGenerationMenu(string? zip, string? dir)
     {
         var choice = AnsiConsole.Prompt(
-        new SelectionPrompt<string>()
-            .Title("[yellow]Suite ?[/]")
-            .AddChoices(
-                "Relancer la génération",
-                "Recharger la config",
-                "Ouvrir dossier de sortie",
-                "Ouvrir fichier généré," +
-                "Quitter"));
+            new SelectionPrompt<string>()
+                .Title("[yellow]Suite ?[/]")
+                .AddChoices(
+                    UiActions.Regenerate,
+                    UiActions.ReloadConfig,
+                    UiActions.OpenOutputDir,
+                    UiActions.OpenLastZip,
+                    UiActions.Quit));
         switch (choice)
         {
-            case "Ouvrir dossier de sortie":
+            case UiActions.OpenOutputDir:
                 ShellOpener.Open(dir);
                 return true;
-            case "Ouvrir fichier généré":
+            case UiActions.OpenLastZip:
                 ShellOpener.Open(zip);
                 return true;
-            case "Quitter":
+            case UiActions.Quit:
                 return false;
             default:
                 return true;
         }
-
     }
 
     public static void DisplayError(Exception ex)

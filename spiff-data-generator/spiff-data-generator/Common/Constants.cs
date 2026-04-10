@@ -19,24 +19,18 @@ public static class Constants
 
     public static string ConfigPath => Path.Combine(BaseDirectory, ConfigFileName);
 
-    public static class Actions
-    {
-        public const string Generate = "G�n�rer";
-        public const string OpenConfig = "Ouvrir le fichier de config";
-        public const string OpenLastZip = "Ouvrir le dernier fichier g�n�r�";
-        public const string OpenOutputDir = "Ouvrir le dossier de sortie";
-        public const string Quit = "Quitter";
-    }
+    // Codes de type d'identification des parties
+    public const int IdTypeSIN = 1;        // NAS (Social Insurance Number)
+    public const int IdTypeNE = 2;         // Numéro d'entreprise
+    public const int IdTypeCompte = 4;     // Transit + Compte
+    public const int IdTypeEmetteur = 5;   // Émetteur fourni
+    public const int IdTypeNEQ = 6;        // NEQ (Québec)
+    public const int IdTypeNI = 7;         // NI (Fiducie QC)
+    public const int IdTypeFID = 8;        // FID (Fiducie hors-QC)
 
-    public static class PostGenerationActions
-    {
-        public const string Regenerate = "Relancer la g�n�ration";
-        public const string ReloadConfig = "Recharger la config";
-        public const string OpenGeneratedFile = "Ouvrir le dernier fichier g�n�r�";
-        public const string OpenOutputDir = "Ouvrir le dossier de sortie";
-        public const string OpenConfig = "Ouvrir le fichier de config";
-        public const string Quit = "Quitter";
-    }
+    // Codes de sous-type de partie
+    public const int PartyTypeIndividu = 1;
+    public const int PartyTypeOrganisation = 2;
 
     public static readonly IReadOnlyList<OrganisationType> TypesOrganisation =
         [OrganisationType.Societe, OrganisationType.Fiducie, OrganisationType.Association];

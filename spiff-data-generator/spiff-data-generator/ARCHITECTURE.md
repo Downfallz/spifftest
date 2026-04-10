@@ -119,7 +119,7 @@ private {Type}SlipContext BuildContext(int seq)
         "indAdFiscalePostaleIdentique": true
       }
     ],
-    "documents": [ { "metadonneesDocument": [...] } ]
+    "documents": [ { "metaDonneesDocument": [...] } ]
   },
   "contenu": {
     "cases": [
