@@ -21,7 +21,12 @@ public static class GeneratorConfigLoader
         {
             Common.Constants.T5 => "T5RL3",
             Common.Constants.NR4 => "NR4",
+            Common.Constants.RRSP => "RRSP",
             Common.Constants.T4RIFRL2 => "T4RIFRL2",
+            Common.Constants.T4RSPRL2 => "T4RSPRL2",
+            Common.Constants.T5008RL18 => "T5008RL18",
+            Common.Constants.T4FHSARL32 => "T4FHSARL32",
+            Common.Constants.T4ARCRL1 => "T4ARCRL1",
             _ => throw new ArgumentException($"Type de feuillet inconnu: {typeFeuillet}")
         };
 
