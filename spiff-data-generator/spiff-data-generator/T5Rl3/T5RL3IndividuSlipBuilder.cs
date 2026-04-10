@@ -1,22 +1,20 @@
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Models;
 
-namespace spiff_data_generator.T5Rl3.Builders;
+namespace spiff_data_generator.T5Rl3;
 
-public sealed class IndividuSlipBuilder : ISlipBuilder
+public sealed class T5RL3IndividuSlipBuilder : ISlipBuilder<T5RL3SlipContext>
 {
     private readonly IRandomService _random;
 
-    public IndividuSlipBuilder(IRandomService random)
+    public T5RL3IndividuSlipBuilder(IRandomService random)
     {
         _random = random;
     }
 
-    public bool CanBuild(SlipContext context) => context.IsIndividu;
+    public bool CanBuild(T5RL3SlipContext context) => context.IsIndividu;
 
-    public Dictionary<string, object> Build(SlipContext context)
+    public Dictionary<string, object> Build(T5RL3SlipContext context)
     {
         string prenom = _random.FirstName();
         string nom = _random.LastName();
@@ -62,12 +60,12 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
             },
             ["contenu"] = new Dictionary<string, object>
             {
-                ["cases"] = CaseBuilder.Build(context)
+                ["cases"] = T5RL3CaseBuilder.Build(context)
             }
         };
     }
 
-    private Dictionary<string, object> BuildAdresse(SlipContext context)
+    private Dictionary<string, object> BuildAdresse(T5RL3SlipContext context)
     {
         return new Dictionary<string, object>
         {
@@ -81,7 +79,7 @@ public sealed class IndividuSlipBuilder : ISlipBuilder
         };
     }
 
-    private List<object> BuildDocuments(SlipContext context)
+    private List<object> BuildDocuments(T5RL3SlipContext context)
     {
         return
         [

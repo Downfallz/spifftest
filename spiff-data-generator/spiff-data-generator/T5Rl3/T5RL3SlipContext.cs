@@ -1,6 +1,8 @@
-namespace spiff_data_generator.T5Rl3.Models;
+using spiff_data_generator.T5Rl3.Models;
 
-public sealed record SlipContext(
+namespace spiff_data_generator.T5Rl3;
+
+public sealed record T5RL3SlipContext(
     string NumTransit,
     string NumCompte,
     string Province,
@@ -12,4 +14,4 @@ public sealed record SlipContext(
     string Devise,
     string Case13,
     string CaseD,
-    bool IsIndividu);
+    bool IsIndividu) : SlipContextBase(Province, Pays);

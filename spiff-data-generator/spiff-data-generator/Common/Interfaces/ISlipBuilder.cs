@@ -1,9 +1,10 @@
-using spiff_data_generator.T5Rl3.Models;
+using spiff_data_generator.Common.Models;
+using spiff_data_generator.T5Rl3;
 
 namespace spiff_data_generator.Common.Interfaces;
 
-public interface ISlipBuilder
+public interface ISlipBuilder<in TContext> where TContext : ISlipContext
 {
-    bool CanBuild(SlipContext context);
-    Dictionary<string, object> Build(SlipContext context);
+    bool CanBuild(TContext context);
+    Dictionary<string, object> Build(TContext context);
 }

@@ -1,26 +1,25 @@
-using System.Globalization;
-
+using spiff_data_generator.Common;
 using spiff_data_generator.Common.Anomalies;
+using spiff_data_generator.Common.Config;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Models;
+using System.Globalization;
 
-namespace spiff_data_generator.T5Rl3.Generation;
+namespace spiff_data_generator.T5Rl3;
 
-public sealed class SlipGenerator : ISlipGenerator
+public sealed class T5RL3SlipGenerator : ISlipGenerator
 {
-    private readonly T5Rl3Config _config;
+    private readonly GeneratorConfig _config;
     private readonly IRandomService _random;
-    private readonly IEnumerable<ISlipBuilder> _builders;
+    private readonly IEnumerable<ISlipBuilder<T5RL3SlipContext>> _builders;
     private readonly IAnomalyService _anomalyService;
     private readonly IGenerationLogger _logger;
 
-    public SlipGenerator(
-        T5Rl3Config config,
+    public T5RL3SlipGenerator(
+        GeneratorConfig config,
         IRandomService random,
-        IEnumerable<ISlipBuilder> builders,
+        IEnumerable<ISlipBuilder<T5RL3SlipContext>> builders,
         IAnomalyService anomalyService,
         IGenerationLogger logger)
     {
@@ -72,7 +71,7 @@ public sealed class SlipGenerator : ISlipGenerator
         return root;
     }
 
-    private SlipContext BuildContext(int seq)
+    private T5RL3SlipContext BuildContext(int seq)
     {
         bool isIndividu = seq <= _config.NombreIndividus;
 
@@ -96,11 +95,11 @@ public sealed class SlipGenerator : ISlipGenerator
             : Constants.TransitNumbers;
         string numTransit = transitArray[transitIndex % transitArray.Length];
 
-        string numCompte = (seq % 999_999 == 0)
+        string numCompte = seq % 999_999 == 0
             ? "999999"
             : (seq % 999_999).ToString("D6", CultureInfo.InvariantCulture);
 
-        return new SlipContext(
+        return new T5RL3SlipContext(
             NumTransit: numTransit,
             NumCompte: numCompte,
             Province: province,

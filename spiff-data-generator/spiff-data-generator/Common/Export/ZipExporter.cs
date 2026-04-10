@@ -1,21 +1,21 @@
+using Newtonsoft.Json;
+using spiff_data_generator.Common.Config;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.Logging;
-using spiff_data_generator.T5Rl3.Config;
 using System.Globalization;
 using System.IO.Compression;
-using Newtonsoft.Json;
 
 namespace spiff_data_generator.Common.Export;
 
 public sealed class ZipExporter : IZipExporter
 {
-    private readonly T5Rl3Config _config;
+    private readonly GeneratorConfig _config;
     private readonly ISlipGenerator _generator;
     private readonly IGenerationLogger _logger;
 
     public Action<int, int>? OnProgress { get; set; }
 
-    public ZipExporter(T5Rl3Config config, ISlipGenerator generator, IGenerationLogger logger)
+    public ZipExporter(GeneratorConfig config, ISlipGenerator generator, IGenerationLogger logger)
     {
         _config = config;
         _generator = generator;

@@ -41,8 +41,8 @@ public class GenerateController : ControllerBase
         var anomalyService = new AnomalyService(config);
         var builders = new ISlipBuilder[]
         {
-            new IndividuSlipBuilder(random),
-            new OrganisationSlipBuilder(random),
+            new T5RL3IndividuSlipBuilder(random),
+            new T5RL3OrganisationSlipBuilder(random),
         };
         using var genLogger = new MsLoggerGenerationLogger(
             HttpContext.RequestServices.GetRequiredService<ILogger<MsLoggerGenerationLogger>>());

@@ -1,0 +1,43 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using spiff_data_generator.Common.Config;
+using spiff_data_generator.Common.Export;
+using spiff_data_generator.Common.Logging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace spiff_data_generator;
+public static class GeneratorRunner
+{
+    public static (string zipPath, string outputDir) Run(
+        string typeFeuillet,
+        GeneratorConfig config)
+    {
+        try{
+            var prefix = config.GetNextFilePrefix
+                (DateTime.Now.ToString("yyyyMMdd"));
+
+            using var logger = new FileGenerationLogger(config.OutputDir, prefix);
+
+            using var provider = ServiceProviderFactory.Build(typeFeuillet, config, logger);
+
+            var exporter = provider.GetRequiredService<IZipExporter>();
+            var sw = Stopwatch.StartNew();
+
+            ConsoleUi.RunProgress(exporter, config.NombreLignes);
+
+            sw.Stop();
+
+            return ConsoleUi.ShowSummary(exporter, config, prefix, sw);
+
+        }
+        catch (Exception ex)
+        {
+            ConsoleUi.DisplayError(ex);
+            return (string.Empty, config.OutputDir);
+        }
+    }
+}

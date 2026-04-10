@@ -5,9 +5,8 @@ using spiff_data_generator.Common.Anomalies;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Builders;
+using spiff_data_generator.T5Rl3;
 using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Generation;
 using Xunit;
 
 namespace spiff_data_generator.Tests.T5Rl3.Generation;
@@ -20,11 +19,11 @@ public class SlipGeneratorTests
         return new ServiceCollection()
             .AddSingleton(config)
             .AddSingleton<IRandomService, RandomService>()
-            .AddSingleton<ISlipBuilder, IndividuSlipBuilder>()
-            .AddSingleton<ISlipBuilder, OrganisationSlipBuilder>()
+            .AddSingleton<ISlipBuilder, T5RL3IndividuSlipBuilder>()
+            .AddSingleton<ISlipBuilder, T5RL3OrganisationSlipBuilder>()
             .AddSingleton<IAnomalyService, AnomalyService>()
             .AddSingleton<IGenerationLogger, NullGenerationLogger>()
-            .AddSingleton<ISlipGenerator, SlipGenerator>()
+            .AddSingleton<ISlipGenerator, T5RL3SlipGenerator>()
             .BuildServiceProvider();
     }
 

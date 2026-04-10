@@ -1,7 +1,38 @@
-namespace spiff_data_generator.T5Rl3.Config;
+namespace spiff_data_generator.Common;
 
 public static class Constants
 {
+    public const string T5 = "T5RL3";
+    public const string NR4 = "NR4";
+    public const string T4RIFRL2 = "T4RIFRL2";
+
+    public static readonly string[] TypesFeuillet = [T5, NR4, T4RIFRL2];
+
+    public const string ConfigFileName = "datagenerator-config.json";
+
+    public static string BaseDirectory => AppContext.BaseDirectory;
+
+    public static string ConfigPath => Path.Combine(BaseDirectory, ConfigFileName);
+
+    public static class Actions
+    {
+        public const string Generate = "Générer";
+        public const string OpenConfig = "Ouvrir le fichier de config";
+        public const string OpenLastZip = "Ouvrir le dernier fichier généré";
+        public const string OpenOutputDir = "Ouvrir le dossier de sortie";
+        public const string Quit = "Quitter";
+    }
+
+    public static class PostGenerationActions
+    {
+        public const string Regenerate = "Relancer la génération";
+        public const string ReloadConfig = "Recharger la config";
+        public const string OpenGeneratedFile = "Ouvrir le dernier fichier généré";
+        public const string OpenOutputDir = "Ouvrir le dossier de sortie";
+        public const string OpenConfig = "Ouvrir le fichier de config";
+        public const string Quit = "Quitter";
+    }
+
     public static readonly IReadOnlyList<OrganisationType> TypesOrganisation =
         [OrganisationType.Societe, OrganisationType.Fiducie, OrganisationType.Association];
 
