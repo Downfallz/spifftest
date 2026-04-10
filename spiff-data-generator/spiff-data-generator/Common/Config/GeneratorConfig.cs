@@ -27,10 +27,9 @@ public sealed class GeneratorConfig
     public bool AjouterIdUnique { get; set; }
     public string PrefixeIdentificationUnique { get; set; } = "";
 
-    public string[] Devises { get; set; } =
-        ["CAD", "USD", "AUD", "DKK", "EUR", "GBP", "HKD", "JPY", "NZD"];
+    public string[] Devises { get; set; } = [];
 
-    public string OutputDir { get; set; } = "out/T5RL3";
+    public string OutputDir { get; set; } = "";
     public bool PrettyPrint { get; set; } = true;
 
     public AnomalyConfig Anomalies { get; set; } = new();

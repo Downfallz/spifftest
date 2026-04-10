@@ -210,9 +210,36 @@ case "{TYPE_CODE}":
 
 ## Configuration (GeneratorConfigLoader.cs + datagenerator-config.json)
 
+Le fichier `datagenerator-config.json` utilise un pattern `_defaults` + overrides sparse:
+
+```json
+{
+  "_defaults": {
+    "Plateforme": "SPIFF",
+    "CodeSysteme": "D10815",
+    "AnneeProduction": "2026",
+    ...
+  },
+  "T5Rl3": {
+    "Devises": ["CAD", "USD", "AUD", ...],
+    "Anomalies": { "Enabled": true, ... }
+  },
+  "NR4": { "Devises": ["CAD", "USD"] },
+  "RRSP": {},
+  ...
+}
+```
+
+**Fonctionnement du merge** (`GeneratorConfigLoader.Load()`):
+1. Bind `_defaults` sur un `GeneratorConfig` vide
+2. Bind la section du type par-dessus (ecrase seulement les champs presents)
+3. Auto-derive `OutputDir` = `out/{typeFeuillet}` si pas explicitement defini dans la section du type
+
+Les sections vides `{}` heritent de tous les defaults. Seuls les champs qui different ont besoin d'etre specifies.
+
 Chaque type a besoin de:
-1. Un case dans `GeneratorConfigLoader.Load()` mappant le code vers la section JSON
-2. Une section dans `datagenerator-config.json` avec la meme structure que T5RL3
+1. Un case dans `GeneratorConfigLoader.ResolveSection()` mappant le code vers la section JSON
+2. Une section dans `datagenerator-config.json` (peut etre vide `{}`)
 
 ---
 
