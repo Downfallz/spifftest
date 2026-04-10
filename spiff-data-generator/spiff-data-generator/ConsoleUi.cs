@@ -63,7 +63,7 @@ public static class ConsoleUi
 
     public static void DisplayError(Exception ex)
     {
-        AnsiConsole.Write(new Panel(ex.Message).Header("[bold red]Erreur[/]").BorderStyle(Style.Parse("red")));
+        AnsiConsole.Write(new Panel(Markup.Escape(ex.Message)).Header("[bold red]Erreur[/]").BorderStyle(Style.Parse("red")));
     }
 
     public static void AppendAnomalies(Table table, GeneratorConfig config)
@@ -107,7 +107,7 @@ public static class ConsoleUi
         // ── Header ──────────────────────────────────────────
         AnsiConsole.Clear();
         AnsiConsole.Write(new FigletText("SPIFF Generator").Color(Color.CadetBlue));
-        AnsiConsole.MarkupLine($"[grey]{typeFeuillet} — {DateTime.Now:yyyy-MM-dd HH:mm:ss}[/]");
+        AnsiConsole.MarkupLine($"[grey]{Markup.Escape(typeFeuillet)} — {DateTime.Now:yyyy-MM-dd HH:mm:ss}[/]");
         AnsiConsole.WriteLine();
 
         // ── Config table ────────────────────────────────────
@@ -117,11 +117,11 @@ public static class ConsoleUi
             .AddColumn("[bold]Paramètre[/]")
             .AddColumn("[bold]Valeur[/]");
 
-        table.AddRow("Plateforme", config.Plateforme);
-        table.AddRow("Code système", config.CodeSysteme);
-        table.AddRow("Type déclaration", config.TypeDeclaration);
-        table.AddRow("Cycle production", config.CycleProduction);
-        table.AddRow("Année production", config.AnneeProduction);
+        table.AddRow("Plateforme", Markup.Escape(config.Plateforme));
+        table.AddRow("Code système", Markup.Escape(config.CodeSysteme));
+        table.AddRow("Type déclaration", Markup.Escape(config.TypeDeclaration));
+        table.AddRow("Cycle production", Markup.Escape(config.CycleProduction));
+        table.AddRow("Année production", Markup.Escape(config.AnneeProduction));
         table.AddEmptyRow();
         table.AddRow("Seed", config.Seed.ToString());
         table.AddRow("[green]Individus[/]", $"{config.NombreIndividus:N0}");
@@ -137,7 +137,7 @@ public static class ConsoleUi
         table.AddEmptyRow();
         table.AddRow("Émetteur fourni", config.AjouterEmetteurFourni ? "[green]Oui[/]" : "Non");
         table.AddRow("ID unique", config.AjouterIdUnique ? $"[green]Oui[/] (prefix: {Markup.Escape(config.PrefixeIdentificationUnique)})" : "Non");
-        table.AddRow("Devises", string.Join(", ", config.Devises));
+        table.AddRow("Devises", Markup.Escape(string.Join(", ", config.Devises)));
         table.AddEmptyRow();
         table.AddRow("Output", Markup.Escape(config.OutputDir));
         table.AddRow("Pretty print", config.PrettyPrint ? "[green]Oui[/]" : "Non");
@@ -192,8 +192,8 @@ public static class ConsoleUi
             .AddColumn("[bold]Valeur[/]");
 
         summary.AddRow("Fichier", Markup.Escape(zipPath));
-        summary.AddRow("Taille", $"{fileSize:N0} bytes ({fileSize / 1024d / 1024d:F2} MB");
-        summary.AddRow("Temps écoulé", $"{sw.Elapsed.TotalSeconds:F2} s]");
+        summary.AddRow("Taille", $"{fileSize:N0} bytes ({fileSize / 1024d / 1024d:F2} MB)");
+        summary.AddRow("Temps écoulé", $"{sw.Elapsed.TotalSeconds:F2} s");
         summary.AddRow("Débit", $"{config.NombreLignes / sw.Elapsed.TotalSeconds:F0} lignes/sec");
         summary.AddRow("Log",
             Markup.Escape(Path.Combine(config.OutputDir, $"{actualPrefix}.log")));
