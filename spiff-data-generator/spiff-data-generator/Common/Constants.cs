@@ -4,9 +4,14 @@ public static class Constants
 {
     public const string T5 = "T5RL3";
     public const string NR4 = "NR4";
+    public const string RRSP = "RRSP";
     public const string T4RIFRL2 = "T4RIFRL2";
+    public const string T4RSPRL2 = "T4RSPRL2";
+    public const string T5008RL18 = "T5008RL18";
+    public const string T4FHSARL32 = "T4FHSARL32";
+    public const string T4ARCRL1 = "T4ARCRL1";
 
-    public static readonly string[] TypesFeuillet = [T5, NR4, T4RIFRL2];
+    public static readonly string[] TypesFeuillet = [T5, NR4, RRSP, T4RIFRL2, T4RSPRL2, T5008RL18, T4FHSARL32, T4ARCRL1];
 
     public const string ConfigFileName = "datagenerator-config.json";
 
@@ -16,18 +21,18 @@ public static class Constants
 
     public static class Actions
     {
-        public const string Generate = "Générer";
+        public const string Generate = "Gï¿½nï¿½rer";
         public const string OpenConfig = "Ouvrir le fichier de config";
-        public const string OpenLastZip = "Ouvrir le dernier fichier généré";
+        public const string OpenLastZip = "Ouvrir le dernier fichier gï¿½nï¿½rï¿½";
         public const string OpenOutputDir = "Ouvrir le dossier de sortie";
         public const string Quit = "Quitter";
     }
 
     public static class PostGenerationActions
     {
-        public const string Regenerate = "Relancer la génération";
+        public const string Regenerate = "Relancer la gï¿½nï¿½ration";
         public const string ReloadConfig = "Recharger la config";
-        public const string OpenGeneratedFile = "Ouvrir le dernier fichier généré";
+        public const string OpenGeneratedFile = "Ouvrir le dernier fichier gï¿½nï¿½rï¿½";
         public const string OpenOutputDir = "Ouvrir le dossier de sortie";
         public const string OpenConfig = "Ouvrir le fichier de config";
         public const string Quit = "Quitter";
