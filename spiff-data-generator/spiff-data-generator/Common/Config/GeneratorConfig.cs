@@ -1,8 +1,8 @@
-using spiff_data_generator.Common.Anomalies;
+﻿using spiff_data_generator.Common.Anomalies;
 
-namespace spiff_data_generator.T5Rl3.Config;
+namespace spiff_data_generator.Common.Config;
 
-public sealed class T5Rl3Config
+public sealed class GeneratorConfig
 {
     public string Plateforme { get; set; } = "SPIFF";
     public string CodeSysteme { get; set; } = "D10815";

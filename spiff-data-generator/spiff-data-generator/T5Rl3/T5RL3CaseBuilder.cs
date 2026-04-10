@@ -1,10 +1,8 @@
-using spiff_data_generator.T5Rl3.Models;
+namespace spiff_data_generator.T5Rl3;
 
-namespace spiff_data_generator.T5Rl3.Builders;
-
-public static class CaseBuilder
+public static class T5RL3CaseBuilder
 {
-    public static List<object> Build(SlipContext context)
+    public static List<object> Build(T5RL3SlipContext context)
     {
         var cases = new List<object>
         {

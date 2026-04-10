@@ -1,6 +1,6 @@
-using spiff_data_generator.T5Rl3.Config;
-using System.Globalization;
 using Bogus;
+using spiff_data_generator.Common.Config;
+using System.Globalization;
 
 namespace spiff_data_generator.Common.RandomGen;
 
@@ -18,7 +18,7 @@ public sealed class RandomService : IRandomService
     private readonly Random _rng;
     private readonly Faker _faker;
 
-    public RandomService(T5Rl3Config config)
+    public RandomService(GeneratorConfig config)
     {
         _rng = new Random(config.Seed);
         _faker = new Faker("en_CA");

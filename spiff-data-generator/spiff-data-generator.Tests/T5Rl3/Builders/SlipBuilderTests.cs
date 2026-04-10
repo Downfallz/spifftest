@@ -1,10 +1,9 @@
 using FluentAssertions;
 using Moq;
 using Moq.AutoMock;
+using spiff_data_generator.Common;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Builders;
-using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Models;
+using spiff_data_generator.T5Rl3;
 using Xunit;
 
 namespace spiff_data_generator.Tests.T5Rl3.Builders;
@@ -13,7 +12,7 @@ public class SlipBuilderTests
 {
     private readonly AutoMocker _mocker = new();
 
-    private static SlipContext QcIndividuContext() => new(
+    private static T5RL3SlipContext QcIndividuContext() => new(
         NumTransit: "81500008",
         NumCompte: "000001",
         Province: "QC",
@@ -27,7 +26,7 @@ public class SlipBuilderTests
         CaseD: "500.00",
         IsIndividu: true);
 
-    private static SlipContext OnOrganisationContext() => new(
+    private static T5RL3SlipContext OnOrganisationContext() => new(
         NumTransit: "32900303",
         NumCompte: "000002",
         Province: "ON",
@@ -67,14 +66,14 @@ public class SlipBuilderTests
     [Fact]
     public void IndividuSlipBuilder_CanBuild_ReturnsTrueForIndividu()
     {
-        var builder = _mocker.CreateInstance<IndividuSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>();
         builder.CanBuild(QcIndividuContext()).Should().BeTrue();
     }
 
     [Fact]
     public void IndividuSlipBuilder_CanBuild_ReturnsFalseForOrganisation()
     {
-        var builder = _mocker.CreateInstance<IndividuSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>();
         builder.CanBuild(OnOrganisationContext()).Should().BeFalse();
     }
 
@@ -82,7 +81,7 @@ public class SlipBuilderTests
     public void IndividuSlipBuilder_Build_HasRequiredKeys()
     {
         SetupRandomMock();
-        var builder = _mocker.CreateInstance<IndividuSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>();
 
         var result = builder.Build(QcIndividuContext());
 
@@ -96,7 +95,7 @@ public class SlipBuilderTests
     public void IndividuSlipBuilder_Build_SetsFormulaire_QC()
     {
         SetupRandomMock();
-        var builder = _mocker.CreateInstance<IndividuSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>();
 
         var result = builder.Build(QcIndividuContext());
         var info = (Dictionary<string, object>)result["information"];
@@ -109,7 +108,7 @@ public class SlipBuilderTests
     public void IndividuSlipBuilder_Build_SetsSINInParties()
     {
         SetupRandomMock();
-        var builder = _mocker.CreateInstance<IndividuSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>();
 
         var result = builder.Build(QcIndividuContext());
         var info = (Dictionary<string, object>)result["information"];
@@ -126,7 +125,7 @@ public class SlipBuilderTests
     public void IndividuSlipBuilder_Build_IncludesCases_QC()
     {
         SetupRandomMock();
-        var builder = _mocker.CreateInstance<IndividuSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>();
 
         var result = builder.Build(QcIndividuContext());
         var contenu = (Dictionary<string, object>)result["contenu"];
@@ -140,14 +139,14 @@ public class SlipBuilderTests
     [Fact]
     public void OrganisationSlipBuilder_CanBuild_ReturnsTrueForOrganisation()
     {
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
         builder.CanBuild(OnOrganisationContext()).Should().BeTrue();
     }
 
     [Fact]
     public void OrganisationSlipBuilder_CanBuild_ReturnsFalseForIndividu()
     {
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
         builder.CanBuild(QcIndividuContext()).Should().BeFalse();
     }
 
@@ -155,7 +154,7 @@ public class SlipBuilderTests
     public void OrganisationSlipBuilder_Build_HasRequiredKeys()
     {
         SetupRandomMock();
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
 
         var result = builder.Build(OnOrganisationContext());
 
@@ -167,7 +166,7 @@ public class SlipBuilderTests
     public void OrganisationSlipBuilder_Build_SetsFormulaireReleve()
     {
         SetupRandomMock();
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
 
         var result = builder.Build(OnOrganisationContext());
         var info = (Dictionary<string, object>)result["information"];
@@ -180,7 +179,7 @@ public class SlipBuilderTests
     public void OrganisationSlipBuilder_Build_SetsCompanyName()
     {
         SetupRandomMock();
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
 
         var result = builder.Build(OnOrganisationContext());
         var info = (Dictionary<string, object>)result["information"];

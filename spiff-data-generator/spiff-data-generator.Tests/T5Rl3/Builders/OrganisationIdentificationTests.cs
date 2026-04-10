@@ -1,10 +1,9 @@
 using FluentAssertions;
 using Moq;
 using Moq.AutoMock;
+using spiff_data_generator.Common;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Builders;
-using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Models;
+using spiff_data_generator.T5Rl3;
 using Xunit;
 
 namespace spiff_data_generator.Tests.T5Rl3.Builders;
@@ -13,13 +12,13 @@ public class OrganisationIdentificationTests
 {
     private readonly AutoMocker _mocker = new();
 
-    private static SlipContext QcOrgContext() => new(
+    private static T5RL3SlipContext QcOrgContext() => new(
         NumTransit: "81500008", NumCompte: "000001", Province: "QC",
         IsQc: true, Langue: "F", Pays: "CAN", TypImpression: "PN",
         HoldMail: false, Devise: "CAD", Case13: "1000.00",
         CaseD: "500.00", IsIndividu: false);
 
-    private static SlipContext NonQcOrgContext() => new(
+    private static T5RL3SlipContext NonQcOrgContext() => new(
         NumTransit: "32900303", NumCompte: "000002", Province: "ON",
         IsQc: false, Langue: "A", Pays: "CAN", TypImpression: "N",
         HoldMail: false, Devise: "USD", Case13: "2000.00",
@@ -41,9 +40,9 @@ public class OrganisationIdentificationTests
         random.Setup(r => r.RandomChoice(It.IsAny<IReadOnlyList<OrganisationType>>())).Returns(genre);
     }
 
-    private List<object> GetIdentification(SlipContext context)
+    private List<object> GetIdentification(T5RL3SlipContext context)
     {
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
         var result = builder.Build(context);
         var info = (Dictionary<string, object>)result["information"];
         var parties = (List<object>)info["parties"];
@@ -121,7 +120,7 @@ public class OrganisationIdentificationTests
     public void Fiducie_HasPDO_InDocuments()
     {
         SetupMock(OrganisationType.Fiducie);
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
         var result = builder.Build(QcOrgContext());
         var info = (Dictionary<string, object>)result["information"];
         var docs = (List<object>)info["documents"];
@@ -136,7 +135,7 @@ public class OrganisationIdentificationTests
     public void Societe_DoesNotHave_PDO_InDocuments()
     {
         SetupMock(OrganisationType.Societe);
-        var builder = _mocker.CreateInstance<OrganisationSlipBuilder>();
+        var builder = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
         var result = builder.Build(QcOrgContext());
         var info = (Dictionary<string, object>)result["information"];
         var docs = (List<object>)info["documents"];

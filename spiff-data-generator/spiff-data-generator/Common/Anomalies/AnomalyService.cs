@@ -1,12 +1,12 @@
-using spiff_data_generator.T5Rl3.Config;
+using spiff_data_generator.Common.Config;
 
 namespace spiff_data_generator.Common.Anomalies;
 
 public sealed class AnomalyService : IAnomalyService
 {
-    private readonly T5Rl3Config _config;
+    private readonly GeneratorConfig _config;
 
-    public AnomalyService(T5Rl3Config config)
+    public AnomalyService(GeneratorConfig config)
     {
         _config = config;
     }
@@ -94,7 +94,6 @@ public sealed class AnomalyService : IAnomalyService
 
             // ── Sévère impression (adresse) ─────────────────────
             case AnomalyKind.CodePostalManquant:
-                ClearAdresseField(adresse, "numCodePostal");
                 ClearAdresseField(adresse, "numCodPostal");
                 break;
 
@@ -116,7 +115,6 @@ public sealed class AnomalyService : IAnomalyService
                 break;
 
             case AnomalyKind.CodePaysManquant:
-                ClearAdresseField(adresse, "codePaysIso");
                 ClearAdresseField(adresse, "codPaysIso");
                 break;
 

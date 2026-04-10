@@ -1,24 +1,23 @@
+using spiff_data_generator.Common;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Models;
 
-namespace spiff_data_generator.T5Rl3.Builders;
+namespace spiff_data_generator.T5Rl3;
 
-public sealed class OrganisationSlipBuilder : ISlipBuilder
+public sealed class T5RL3OrganisationSlipBuilder : ISlipBuilder<T5RL3SlipContext>
 {
     private readonly IRandomService _random;
 
-    public OrganisationSlipBuilder(IRandomService random)
+    public T5RL3OrganisationSlipBuilder(IRandomService random)
     {
         _random = random;
     }
 
-    public bool CanBuild(SlipContext context) => !context.IsIndividu;
+    public bool CanBuild(T5RL3SlipContext context) => !context.IsIndividu;
 
-    public Dictionary<string, object> Build(SlipContext context)
+    public Dictionary<string, object> Build(T5RL3SlipContext context)
     {
-        var genre = _random.RandomChoice<OrganisationType>(Constants.TypesOrganisation);
+        var genre = _random.RandomChoice(Constants.TypesOrganisation);
         string ne = _random.FixedDigits(9);
         string neq = _random.GenerateNEQ(genre);
         string fid = "T" + _random.FixedDigits(8);
@@ -49,7 +48,7 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
                         ["identificationPartie"] = identification,
                         ["nomOrganisationLign1"] = nom1,
                         ["nomOrganisationLign2"] = nom2,
-                        ["adresseFiscale"] = AdresseHelper.BuildAdresse(_random, context),
+                        ["adresseFiscale"] = BuildAdresse(context),
                         ["indAdFiscalePostaleIdentique"] = true,
                     }
                 },
@@ -57,13 +56,13 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
             },
             ["contenu"] = new Dictionary<string, object>
             {
-                ["cases"] = CaseBuilder.Build(context)
+                ["cases"] = T5RL3CaseBuilder.Build(context)
             }
         };
     }
 
     private List<object> BuildIdentification(
-        SlipContext context, OrganisationType genre, string ne, string neq, string fid, string ni)
+        T5RL3SlipContext context, OrganisationType genre, string ne, string neq, string fid, string ni)
     {
         var identification = new List<object>
         {
@@ -122,7 +121,7 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
         return identification;
     }
 
-    private List<object> BuildDocuments(SlipContext context, OrganisationType genre)
+    private List<object> BuildDocuments(T5RL3SlipContext context, OrganisationType genre)
     {
         var metadonnees = new List<object>
         {
@@ -161,9 +160,22 @@ public sealed class OrganisationSlipBuilder : ISlipBuilder
         [
             new Dictionary<string, object>
             {
-                ["metadonneesDocument"] = metadonnees
+                ["metaDonneesDocument"] = metadonnees
             }
         ];
     }
 
+    private Dictionary<string, object> BuildAdresse(T5RL3SlipContext context)
+    {
+        return new Dictionary<string, object>
+        {
+            ["numCivique"] = _random.BuildingNumber(),
+            ["nomRue"] = _random.StreetName(),
+            ["nomMunicipalite"] = _random.City(),
+            ["numUnite"] = _random.SecondaryAddress(),
+            ["codProvince"] = context.Province,
+            ["codPaysIso"] = context.Pays,
+            ["numCodPostal"] = _random.GenerateCanadianPostalCode(context.Province).Replace(" ", ""),
+        };
+    }
 }

@@ -30,32 +30,35 @@ public class GenerateController : ControllerBase
     {
         request ??= new GenerateRequest();
 
-        // ── Validation ────────────────────────────────────────
+        // ── Validation ────────────────────────────────────
+        var errors = new List<string>();
+
         if (request.NombreIndividus > request.NombreLignes)
-            return BadRequest("NombreIndividus ne peut pas dépasser NombreLignes.");
-
-        if (request.BatchSize > request.NombreLignes)
-            return BadRequest("BatchSize ne peut pas dépasser NombreLignes.");
-
-        if (request.Devises == null || request.Devises.Length == 0)
-            return BadRequest("Devises ne peut pas être vide.");
-
-        if (request.WeightsCourrierRetenu.Any(w => w < 0)
-            || request.WeightsImpression.Any(w => w < 0)
-            || request.WeightsCodeProvince.Any(w => w < 0))
-            return BadRequest("Les poids (weights) ne peuvent pas être négatifs.");
+            errors.Add("NombreIndividus ne peut pas dépasser NombreLignes.");
 
         if (request.WeightsCourrierRetenu.Length != 2)
-            return BadRequest("WeightsCourrierRetenu doit contenir exactement 2 éléments.");
+            errors.Add("WeightsCourrierRetenu doit contenir exactement 2 éléments.");
+        else if (request.WeightsCourrierRetenu.Sum() <= 0)
+            errors.Add("La somme de WeightsCourrierRetenu doit être > 0.");
 
         if (request.WeightsImpression.Length != 2)
-            return BadRequest("WeightsImpression doit contenir exactement 2 éléments.");
+            errors.Add("WeightsImpression doit contenir exactement 2 éléments.");
+        else if (request.WeightsImpression.Sum() <= 0)
+            errors.Add("La somme de WeightsImpression doit être > 0.");
 
         if (request.WeightsCodeProvince.Length != 2)
-            return BadRequest("WeightsCodeProvince doit contenir exactement 2 éléments.");
+            errors.Add("WeightsCodeProvince doit contenir exactement 2 éléments.");
+        else if (request.WeightsCodeProvince.Sum() <= 0)
+            errors.Add("La somme de WeightsCodeProvince doit être > 0.");
 
-        if (request.NombreFeuilletParCaisse <= 0)
-            return BadRequest("NombreFeuilletParCaisse doit être supérieur à 0.");
+        if (request.Devises.Length == 0)
+            errors.Add("Devises ne peut pas être vide.");
+
+        if (request.BatchSize > request.NombreLignes)
+            errors.Add("BatchSize ne peut pas dépasser NombreLignes.");
+
+        if (errors.Count > 0)
+            return BadRequest(new { errors });
 
         var config = request.ToConfig();
         Randomizer.Seed = new Random(config.Seed);
@@ -65,8 +68,8 @@ public class GenerateController : ControllerBase
         var anomalyService = new AnomalyService(config);
         var builders = new ISlipBuilder[]
         {
-            new IndividuSlipBuilder(random),
-            new OrganisationSlipBuilder(random),
+            new T5RL3IndividuSlipBuilder(random),
+            new T5RL3OrganisationSlipBuilder(random),
         };
         using var genLogger = new MsLoggerGenerationLogger(
             HttpContext.RequestServices.GetRequiredService<ILogger<MsLoggerGenerationLogger>>());
