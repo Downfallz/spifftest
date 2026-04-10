@@ -7,6 +7,7 @@ public static class UiActions
     public const string OverrideParams = "Modifier les paramètres";
     public const string OpenConfig = "Ouvrir le fichier de config";
     public const string OpenLastZip = "Ouvrir le dernier fichier généré";
+    public const string OpenLog = "Ouvrir le fichier de log";
     public const string OpenOutputDir = "Ouvrir le dossier de sortie";
     public const string Quit = "Quitter";
 

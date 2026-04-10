@@ -14,10 +14,16 @@ public static class ConsoleDataGenerator
             ConsoleUi.DisplayWelcome();
             var selectedTypes = ConsoleUi.PromptTypesFeuillet(Constants.TypesFeuillet);
 
-            // 2. Load configs
+            // 2. Load configs with spinner
             var configs = new Dictionary<string, GeneratorConfig>();
-            foreach (var type in selectedTypes)
-                configs[type] = GeneratorConfigLoader.Load(type);
+            AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("cyan"))
+                .Start("[cyan]Chargement des configurations...[/]", _ =>
+                {
+                    foreach (var type in selectedTypes)
+                        configs[type] = GeneratorConfigLoader.Load(type);
+                });
 
             // 3. Action loop
             string? lastZip = null;
@@ -25,7 +31,7 @@ public static class ConsoleDataGenerator
 
             while (true)
             {
-                // Show config (single type = full detail, multi = compact table)
+                // Show config
                 if (selectedTypes.Count == 1)
                     ConsoleUi.DisplayConfig(selectedTypes[0], configs[selectedTypes[0]]);
                 else
@@ -36,16 +42,20 @@ public static class ConsoleDataGenerator
                 switch (action)
                 {
                     case UiActions.Generate:
+                        if (!ConsoleUi.ConfirmGeneration(selectedTypes, configs))
+                            continue;
+
+                        AnsiConsole.WriteLine();
                         var results = RunAllGenerations(selectedTypes, configs);
                         if (results.Count > 1)
                             ConsoleUi.ShowGrandSummary(results);
+
                         lastZip = results.LastOrDefault().zipPath;
                         lastOutputDir = results.LastOrDefault().outputDir;
 
                         var postAction = HandlePostGeneration(lastZip, lastOutputDir);
                         if (postAction == UiActions.Quit) return;
                         if (postAction == UiActions.NewSelection) goto newSelection;
-                        // Regenerate or other: continue inner loop
                         continue;
 
                     case UiActions.OverrideParams:
@@ -61,6 +71,10 @@ public static class ConsoleDataGenerator
 
                     case UiActions.OpenLastZip:
                         ShellOpener.Open(lastZip);
+                        continue;
+
+                    case UiActions.OpenLog:
+                        OpenLogFile(lastZip);
                         continue;
 
                     case UiActions.OpenOutputDir:
@@ -84,7 +98,6 @@ public static class ConsoleDataGenerator
 
         foreach (var type in types)
         {
-            AnsiConsole.WriteLine();
             AnsiConsole.Write(new Rule($"[bold cyan]{Markup.Escape(type)}[/]").RuleStyle("blue"));
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -111,12 +124,21 @@ public static class ConsoleDataGenerator
                 case UiActions.OpenLastZip:
                     ShellOpener.Open(lastZip);
                     continue;
+                case UiActions.OpenLog:
+                    OpenLogFile(lastZip);
+                    continue;
                 case UiActions.OpenConfig:
                     ShellOpener.Open(Constants.ConfigPath);
                     continue;
                 default:
-                    return action; // Quit, NewSelection, Regenerate
+                    return action;
             }
         }
+    }
+
+    private static void OpenLogFile(string? zipPath)
+    {
+        if (!string.IsNullOrEmpty(zipPath))
+            ShellOpener.Open(Path.ChangeExtension(zipPath, ".log"));
     }
 }
