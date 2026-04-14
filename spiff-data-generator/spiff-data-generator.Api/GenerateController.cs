@@ -5,8 +5,7 @@ using spiff_data_generator.Common.Export;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Builders;
-using spiff_data_generator.T5Rl3.Generation;
+using spiff_data_generator.T5Rl3;
 
 namespace spiff_data_generator.Api;
 
@@ -66,14 +65,14 @@ public class GenerateController : ControllerBase
         // Build a scoped DI container for this request
         var random = new RandomService(config);
         var anomalyService = new AnomalyService(config);
-        var builders = new ISlipBuilder[]
+        var builders = new ISlipBuilder<T5RL3SlipContext>[]
         {
             new T5RL3IndividuSlipBuilder(random),
             new T5RL3OrganisationSlipBuilder(random),
         };
         using var genLogger = new MsLoggerGenerationLogger(
             HttpContext.RequestServices.GetRequiredService<ILogger<MsLoggerGenerationLogger>>());
-        var slipGenerator = new SlipGenerator(config, random, builders, anomalyService, genLogger);
+        var slipGenerator = new T5RL3SlipGenerator(config, random, builders, anomalyService, genLogger);
         var zipExporter = new ZipExporter(config, slipGenerator, genLogger);
 
         _logger.LogInformation(

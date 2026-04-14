@@ -1,4 +1,5 @@
 using spiff_data_generator.Common;
+using spiff_data_generator.Common.Builders;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.RandomGen;
 
@@ -42,13 +43,13 @@ public sealed class T5RL3OrganisationSlipBuilder : ISlipBuilder<T5RL3SlipContext
                 {
                     new Dictionary<string, object>
                     {
-                        ["idCodSousTypePartie"] = 2,
+                        ["idCodSousTypePartie"] = Constants.PartyTypeOrganisation,
                         ["idCodRoleRelevePartie"] = 1,
                         ["idCodTypeRoleRelevePartie"] = (int)genre,
                         ["identificationPartie"] = identification,
                         ["nomOrganisationLign1"] = nom1,
                         ["nomOrganisationLign2"] = nom2,
-                        ["adresseFiscale"] = BuildAdresse(context),
+                        ["adresseFiscale"] = AdresseHelper.BuildAdresse(_random, context),
                         ["indAdFiscalePostaleIdentique"] = true,
                     }
                 },
@@ -68,7 +69,7 @@ public sealed class T5RL3OrganisationSlipBuilder : ISlipBuilder<T5RL3SlipContext
         {
             new Dictionary<string, object>
             {
-                ["idCodTypeIdentificationPartie"] = 4,
+                ["idCodTypeIdentificationPartie"] = Constants.IdTypeCompte,
                 ["numIdentificationPartie"] = context.NumTransit + context.NumCompte
             }
         };
@@ -77,7 +78,7 @@ public sealed class T5RL3OrganisationSlipBuilder : ISlipBuilder<T5RL3SlipContext
         {
             identification.Add(new Dictionary<string, object>
             {
-                ["idCodTypeIdentificationPartie"] = 2, // NE
+                ["idCodTypeIdentificationPartie"] = Constants.IdTypeNE,
                 ["numIdentificationPartie"] = ne
             });
         }
@@ -86,34 +87,31 @@ public sealed class T5RL3OrganisationSlipBuilder : ISlipBuilder<T5RL3SlipContext
         {
             if (context.IsQc)
             {
-                // Fiducie QC: NEQ + NI
                 identification.Add(new Dictionary<string, object>
                 {
-                    ["idCodTypeIdentificationPartie"] = 6, // NEQ
+                    ["idCodTypeIdentificationPartie"] = Constants.IdTypeNEQ,
                     ["numIdentificationPartie"] = neq
                 });
                 identification.Add(new Dictionary<string, object>
                 {
-                    ["idCodTypeIdentificationPartie"] = 7, // NI
+                    ["idCodTypeIdentificationPartie"] = Constants.IdTypeNI,
                     ["numIdentificationPartie"] = ni
                 });
             }
             else
             {
-                // Fiducie hors QC: FID
                 identification.Add(new Dictionary<string, object>
                 {
-                    ["idCodTypeIdentificationPartie"] = 8, // FID
+                    ["idCodTypeIdentificationPartie"] = Constants.IdTypeFID,
                     ["numIdentificationPartie"] = fid
                 });
             }
         }
         else if (context.IsQc)
         {
-            // Non-Fiducie QC: NEQ seulement
             identification.Add(new Dictionary<string, object>
             {
-                ["idCodTypeIdentificationPartie"] = 6, // NEQ
+                ["idCodTypeIdentificationPartie"] = Constants.IdTypeNEQ,
                 ["numIdentificationPartie"] = neq
             });
         }
@@ -165,17 +163,4 @@ public sealed class T5RL3OrganisationSlipBuilder : ISlipBuilder<T5RL3SlipContext
         ];
     }
 
-    private Dictionary<string, object> BuildAdresse(T5RL3SlipContext context)
-    {
-        return new Dictionary<string, object>
-        {
-            ["numCivique"] = _random.BuildingNumber(),
-            ["nomRue"] = _random.StreetName(),
-            ["nomMunicipalite"] = _random.City(),
-            ["numUnite"] = _random.SecondaryAddress(),
-            ["codProvince"] = context.Province,
-            ["codPaysIso"] = context.Pays,
-            ["numCodPostal"] = _random.GenerateCanadianPostalCode(context.Province).Replace(" ", ""),
-        };
-    }
 }

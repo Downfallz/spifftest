@@ -1,6 +1,6 @@
 using FluentAssertions;
 using spiff_data_generator.Common.Anomalies;
-using spiff_data_generator.T5Rl3.Config;
+using spiff_data_generator.Common.Config;
 using Xunit;
 
 namespace spiff_data_generator.Tests.Common.Anomalies;
@@ -11,7 +11,7 @@ public class AnomalyServiceTests
 
     public AnomalyServiceTests()
     {
-        var config = new T5Rl3Config { NombreLignes = 100 };
+        var config = new GeneratorConfig { NombreLignes = 100 };
         _sut = new AnomalyService(config);
     }
 
@@ -412,7 +412,7 @@ public class AnomalyServiceTests
     [Fact]
     public void GetAnomalyForSequence_ReturnsNull_WhenDisabled()
     {
-        var config = new T5Rl3Config
+        var config = new GeneratorConfig
         {
             NombreLignes = 10,
             Anomalies = new AnomalyConfig { Enabled = false }
@@ -425,7 +425,7 @@ public class AnomalyServiceTests
     [Fact]
     public void GetAnomalyForSequence_ReturnsAnomaly_ForLastRecords()
     {
-        var config = new T5Rl3Config
+        var config = new GeneratorConfig
         {
             NombreLignes = 10,
             Anomalies = new AnomalyConfig
@@ -448,7 +448,7 @@ public class AnomalyServiceTests
     [Fact]
     public void GetAnomalyForSequence_RoundRobins_WhenMoreNombreThanTypes()
     {
-        var config = new T5Rl3Config
+        var config = new GeneratorConfig
         {
             NombreLignes = 10,
             Anomalies = new AnomalyConfig

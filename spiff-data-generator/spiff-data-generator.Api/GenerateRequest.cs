@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using spiff_data_generator.Common.Anomalies;
-using spiff_data_generator.T5Rl3.Config;
+using spiff_data_generator.Common.Config;
 
 namespace spiff_data_generator.Api;
 
@@ -128,7 +128,7 @@ public sealed class GenerateRequest
     [DefaultValue(5)]
     public int FtpDelaiSeconds { get; set; } = 5;
 
-    public T5Rl3Config ToConfig() => new()
+    public GeneratorConfig ToConfig() => new()
     {
         Plateforme = Plateforme,
         CodeSysteme = CodeSysteme,

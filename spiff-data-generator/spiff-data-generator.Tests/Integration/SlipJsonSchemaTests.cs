@@ -8,31 +8,30 @@ using spiff_data_generator.Common.Export;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Builders;
-using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Generation;
+using spiff_data_generator.Common.Config;
+using spiff_data_generator.T5Rl3;
 using Xunit;
 
 namespace spiff_data_generator.Tests.Integration;
 
 public class SlipJsonSchemaTests
 {
-    private static ServiceProvider BuildServices(T5Rl3Config config)
+    private static ServiceProvider BuildServices(GeneratorConfig config)
     {
         Randomizer.Seed = new Random(config.Seed);
         return new ServiceCollection()
             .AddSingleton(config)
             .AddSingleton<IRandomService, RandomService>()
-            .AddSingleton<ISlipBuilder, IndividuSlipBuilder>()
-            .AddSingleton<ISlipBuilder, OrganisationSlipBuilder>()
+            .AddSingleton<ISlipBuilder<T5RL3SlipContext>, T5RL3IndividuSlipBuilder>()
+            .AddSingleton<ISlipBuilder<T5RL3SlipContext>, T5RL3OrganisationSlipBuilder>()
             .AddSingleton<IAnomalyService, AnomalyService>()
             .AddSingleton<IGenerationLogger, NullGenerationLogger>()
-            .AddSingleton<ISlipGenerator, SlipGenerator>()
+            .AddSingleton<ISlipGenerator, T5RL3SlipGenerator>()
             .AddSingleton<IZipExporter, ZipExporter>()
             .BuildServiceProvider();
     }
 
-    private static T5Rl3Config SmallConfig() => new()
+    private static GeneratorConfig SmallConfig() => new()
     {
         Seed = 42,
         NombreIndividus = 3,
@@ -71,7 +70,7 @@ public class SlipJsonSchemaTests
     public void IndividuSlip_HasExpectedStructure()
     {
         using var sp = BuildServices(SmallConfig());
-        var generator = sp.GetRequiredService<ISlipGenerator>();
+        var generator = sp.GetRequiredService<IT5RL3SlipGenerator>();
 
         var slip = generator.Generate(1); // individu
         var json = JObject.FromObject(slip);
@@ -122,13 +121,13 @@ public class SlipJsonSchemaTests
             ((JObject)ident).Should().ContainKey("numIdentificationPartie");
         }
 
-        // Documents — metadonneesDocument (consistent key)
+        // Documents — metaDonneesDocument (consistent key)
         var documents = (JArray)info["documents"]!;
         documents.Should().HaveCount(1);
         var doc = (JObject)documents[0];
-        doc.Should().ContainKey("metadonneesDocument");
+        doc.Should().ContainKey("metaDonneesDocument");
 
-        var metadonnees = (JArray)doc["metadonneesDocument"]!;
+        var metadonnees = (JArray)doc["metaDonneesDocument"]!;
         metadonnees.Count.Should().BeGreaterOrEqualTo(1);
         foreach (var meta in metadonnees)
         {
@@ -148,7 +147,7 @@ public class SlipJsonSchemaTests
     {
         var config = SmallConfig();
         using var sp = BuildServices(config);
-        var generator = sp.GetRequiredService<ISlipGenerator>();
+        var generator = sp.GetRequiredService<IT5RL3SlipGenerator>();
 
         var slip = generator.Generate(config.NombreIndividus + 1); // organisation
         var json = JObject.FromObject(slip);
@@ -175,7 +174,7 @@ public class SlipJsonSchemaTests
         var documents = (JArray)info["documents"]!;
         documents.Should().HaveCount(1);
         var doc = (JObject)documents[0];
-        doc.Should().ContainKey("metadonneesDocument");
+        doc.Should().ContainKey("metaDonneesDocument");
     }
 
     [Fact]
@@ -183,7 +182,7 @@ public class SlipJsonSchemaTests
     {
         var config = SmallConfig();
         using var sp = BuildServices(config);
-        var generator = sp.GetRequiredService<ISlipGenerator>();
+        var generator = sp.GetRequiredService<IT5RL3SlipGenerator>();
 
         for (int seq = 1; seq <= config.NombreLignes; seq++)
         {

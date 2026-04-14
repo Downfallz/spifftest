@@ -1,4 +1,4 @@
-using spiff_data_generator.T5Rl3.Models;
+using spiff_data_generator.Common.Models;
 
 namespace spiff_data_generator.T4ARCRL1;
 

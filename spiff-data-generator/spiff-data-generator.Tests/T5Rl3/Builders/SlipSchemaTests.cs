@@ -2,9 +2,9 @@ using FluentAssertions;
 using Moq;
 using Moq.AutoMock;
 using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Builders;
-using spiff_data_generator.T5Rl3.Config;
-using spiff_data_generator.T5Rl3.Models;
+using spiff_data_generator.Common;
+using spiff_data_generator.Common.Interfaces;
+using spiff_data_generator.T5Rl3;
 using Xunit;
 
 namespace spiff_data_generator.Tests.T5Rl3.Builders;
@@ -13,13 +13,13 @@ public class SlipSchemaTests
 {
     private readonly AutoMocker _mocker = new();
 
-    private static SlipContext IndividuQcContext() => new(
+    private static T5RL3SlipContextIndividuQcContext() => new(
         NumTransit: "81500008", NumCompte: "000001", Province: "QC",
         IsQc: true, Langue: "F", Pays: "CAN", TypImpression: "PN",
         HoldMail: false, Devise: "CAD", Case13: "1000.00",
         CaseD: "500.00", IsIndividu: true);
 
-    private static SlipContext OrgQcContext() => new(
+    private static T5RL3SlipContextOrgQcContext() => new(
         NumTransit: "81500008", NumCompte: "000001", Province: "QC",
         IsQc: true, Langue: "F", Pays: "CAN", TypImpression: "PN",
         HoldMail: false, Devise: "CAD", Case13: "1000.00",
@@ -51,7 +51,7 @@ public class SlipSchemaTests
     public void Individu_HasRootKeys()
     {
         SetupMock();
-        var result = _mocker.CreateInstance<IndividuSlipBuilder>().Build(IndividuQcContext());
+        var result = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>().Build(IndividuQcContext());
 
         result.Should().ContainKey("information");
         result.Should().ContainKey("contenu");
@@ -61,7 +61,7 @@ public class SlipSchemaTests
     public void Organisation_HasRootKeys()
     {
         SetupMock();
-        var result = _mocker.CreateInstance<OrganisationSlipBuilder>().Build(OrgQcContext());
+        var result = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>().Build(OrgQcContext());
 
         result.Should().ContainKey("information");
         result.Should().ContainKey("contenu");
@@ -77,8 +77,8 @@ public class SlipSchemaTests
         SetupMock();
         var ctx = isIndividu ? IndividuQcContext() : OrgQcContext();
         var builder = isIndividu
-            ? (ISlipBuilder)_mocker.CreateInstance<IndividuSlipBuilder>()
-            : _mocker.CreateInstance<OrganisationSlipBuilder>();
+            ? (ISlipBuilder<T5RL3SlipContext>)_mocker.CreateInstance<T5RL3IndividuSlipBuilder>()
+            : _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
 
         var result = builder.Build(ctx);
         var info = (Dictionary<string, object>)result["information"];
@@ -99,7 +99,7 @@ public class SlipSchemaTests
     public void IndividuParty_HasRequiredKeys()
     {
         SetupMock();
-        var result = _mocker.CreateInstance<IndividuSlipBuilder>().Build(IndividuQcContext());
+        var result = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>().Build(IndividuQcContext());
         var party = GetParty(result);
 
         party.Should().ContainKey("idCodSousTypePartie");
@@ -118,7 +118,7 @@ public class SlipSchemaTests
     public void OrgParty_HasRequiredKeys()
     {
         SetupMock();
-        var result = _mocker.CreateInstance<OrganisationSlipBuilder>().Build(OrgQcContext());
+        var result = _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>().Build(OrgQcContext());
         var party = GetParty(result);
 
         party.Should().ContainKey("idCodSousTypePartie");
@@ -142,8 +142,8 @@ public class SlipSchemaTests
         SetupMock();
         var ctx = isIndividu ? IndividuQcContext() : OrgQcContext();
         var builder = isIndividu
-            ? (ISlipBuilder)_mocker.CreateInstance<IndividuSlipBuilder>()
-            : _mocker.CreateInstance<OrganisationSlipBuilder>();
+            ? (ISlipBuilder<T5RL3SlipContext>)_mocker.CreateInstance<T5RL3IndividuSlipBuilder>()
+            : _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
 
         var result = builder.Build(ctx);
         var party = GetParty(result);
@@ -167,7 +167,7 @@ public class SlipSchemaTests
     public void IndividuIdentification_HasAccountAndSIN()
     {
         SetupMock();
-        var result = _mocker.CreateInstance<IndividuSlipBuilder>().Build(IndividuQcContext());
+        var result = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>().Build(IndividuQcContext());
         var idents = GetIdentifications(result);
 
         idents.Should().HaveCountGreaterOrEqualTo(2);
@@ -180,7 +180,7 @@ public class SlipSchemaTests
     public void Identification_Entries_HaveRequiredKeys()
     {
         SetupMock();
-        var result = _mocker.CreateInstance<IndividuSlipBuilder>().Build(IndividuQcContext());
+        var result = _mocker.CreateInstance<T5RL3IndividuSlipBuilder>().Build(IndividuQcContext());
         var idents = GetIdentifications(result);
 
         foreach (var ident in idents)
@@ -200,8 +200,8 @@ public class SlipSchemaTests
         SetupMock();
         var ctx = isIndividu ? IndividuQcContext() : OrgQcContext();
         var builder = isIndividu
-            ? (ISlipBuilder)_mocker.CreateInstance<IndividuSlipBuilder>()
-            : _mocker.CreateInstance<OrganisationSlipBuilder>();
+            ? (ISlipBuilder<T5RL3SlipContext>)_mocker.CreateInstance<T5RL3IndividuSlipBuilder>()
+            : _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
 
         var result = builder.Build(ctx);
         var info = (Dictionary<string, object>)result["information"];
@@ -231,8 +231,8 @@ public class SlipSchemaTests
         SetupMock();
         var ctx = isIndividu ? IndividuQcContext() : OrgQcContext();
         var builder = isIndividu
-            ? (ISlipBuilder)_mocker.CreateInstance<IndividuSlipBuilder>()
-            : _mocker.CreateInstance<OrganisationSlipBuilder>();
+            ? (ISlipBuilder<T5RL3SlipContext>)_mocker.CreateInstance<T5RL3IndividuSlipBuilder>()
+            : _mocker.CreateInstance<T5RL3OrganisationSlipBuilder>();
 
         var result = builder.Build(ctx);
         var contenu = (Dictionary<string, object>)result["contenu"];

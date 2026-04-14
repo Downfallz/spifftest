@@ -1,6 +1,6 @@
 using FluentAssertions;
 using spiff_data_generator.Common.Anomalies;
-using spiff_data_generator.T5Rl3.Config;
+using spiff_data_generator.Common.Config;
 using Xunit;
 
 namespace spiff_data_generator.Tests.Common.Anomalies;
@@ -10,7 +10,7 @@ public class AnomalyConfigTests
     [Fact]
     public void DefaultConfig_HasAnomaliesDisabled()
     {
-        var cfg = new T5Rl3Config();
+        var cfg = new GeneratorConfig();
         cfg.Anomalies.Should().NotBeNull();
         cfg.Anomalies.Enabled.Should().BeFalse();
     }

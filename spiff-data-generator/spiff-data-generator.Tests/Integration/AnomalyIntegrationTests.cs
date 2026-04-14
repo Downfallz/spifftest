@@ -6,22 +6,22 @@ using spiff_data_generator.Common.Export;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.Logging;
 using spiff_data_generator.Common.RandomGen;
+using spiff_data_generator.Common.Config;
 using spiff_data_generator.T5Rl3;
-using spiff_data_generator.T5Rl3.Config;
 using Xunit;
 
 namespace spiff_data_generator.Tests.Integration;
 
 public class AnomalyIntegrationTests
 {
-    private static ServiceProvider BuildServices(T5Rl3Config config)
+    private static ServiceProvider BuildServices(GeneratorConfig config)
     {
         Randomizer.Seed = new Random(config.Seed);
         return new ServiceCollection()
             .AddSingleton(config)
             .AddSingleton<IRandomService, RandomService>()
-            .AddSingleton<ISlipBuilder, T5RL3IndividuSlipBuilder>()
-            .AddSingleton<ISlipBuilder, T5RL3OrganisationSlipBuilder>()
+            .AddSingleton<ISlipBuilder<T5RL3SlipContext>, T5RL3IndividuSlipBuilder>()
+            .AddSingleton<ISlipBuilder<T5RL3SlipContext>, T5RL3OrganisationSlipBuilder>()
             .AddSingleton<IAnomalyService, AnomalyService>()
             .AddSingleton<IGenerationLogger, NullGenerationLogger>()
             .AddSingleton<ISlipGenerator, T5RL3SlipGenerator>()
@@ -29,7 +29,7 @@ public class AnomalyIntegrationTests
             .BuildServiceProvider();
     }
 
-    private static T5Rl3Config SmallConfig(AnomalyConfig? anomalies = null) => new()
+    private static GeneratorConfig SmallConfig(AnomalyConfig? anomalies = null) => new()
     {
         Seed = 42,
         NombreIndividus = 5,

@@ -1,8 +1,8 @@
 ﻿using spiff_data_generator.Common.RandomGen;
-using spiff_data_generator.T5Rl3.Models;
+using spiff_data_generator.Common.Models;
 
 namespace spiff_data_generator.Common.Builders;
-internal static class AdresseHelper
+public static class AdresseHelper
 {
     public static Dictionary<string, object> BuildAdresse(IRandomService random, SlipContextBase context)
     {

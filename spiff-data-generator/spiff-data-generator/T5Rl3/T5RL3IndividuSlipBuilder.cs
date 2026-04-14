@@ -1,3 +1,5 @@
+using spiff_data_generator.Common;
+using spiff_data_generator.Common.Builders;
 using spiff_data_generator.Common.Interfaces;
 using spiff_data_generator.Common.RandomGen;
 
@@ -33,26 +35,26 @@ public sealed class T5RL3IndividuSlipBuilder : ISlipBuilder<T5RL3SlipContext>
                 {
                     new Dictionary<string, object>
                     {
-                        ["idCodSousTypePartie"] = 1,
+                        ["idCodSousTypePartie"] = Constants.PartyTypeIndividu,
                         ["idCodRoleRelevePartie"] = 1,
                         ["idCodTypeRoleRelevePartie"] = 1,
                         ["identificationPartie"] = new List<object>
                         {
                             new Dictionary<string, object>
                             {
-                                ["idCodTypeIdentificationPartie"] = 1,
+                                ["idCodTypeIdentificationPartie"] = Constants.IdTypeSIN,
                                 ["numIdentificationPartie"] = _random.GenerateSIN()
                             },
                             new Dictionary<string, object>
                             {
-                                ["idCodTypeIdentificationPartie"] = 4,
+                                ["idCodTypeIdentificationPartie"] = Constants.IdTypeCompte,
                                 ["numIdentificationPartie"] = context.NumTransit + context.NumCompte
                             }
                         },
                         ["prn"] = prenom,
                         ["nomFamille"] = nom,
                         ["nomInitiale"] = prenom.Length > 0 ? prenom[..1] : "",
-                        ["adresseFiscale"] = BuildAdresse(context),
+                        ["adresseFiscale"] = AdresseHelper.BuildAdresse(_random, context),
                         ["indAdFiscalePostaleIdentique"] = true,
                     }
                 },
@@ -65,27 +67,13 @@ public sealed class T5RL3IndividuSlipBuilder : ISlipBuilder<T5RL3SlipContext>
         };
     }
 
-    private Dictionary<string, object> BuildAdresse(T5RL3SlipContext context)
-    {
-        return new Dictionary<string, object>
-        {
-            ["numCivique"] = _random.BuildingNumber(),
-            ["nomRue"] = _random.StreetName(),
-            ["nomMunicipalite"] = _random.City(),
-            ["numUnite"] = _random.SecondaryAddress(),
-            ["codProvince"] = context.Province,
-            ["codPaysIso"] = context.Pays,
-            ["numCodePostal"] = _random.GenerateCanadianPostalCode(context.Province).Replace(" ", ""),
-        };
-    }
-
     private List<object> BuildDocuments(T5RL3SlipContext context)
     {
         return
         [
             new Dictionary<string, object>
             {
-                ["metadonneesDocument"] = new List<object>
+                ["metaDonneesDocument"] = new List<object>
                 {
                     new Dictionary<string, object>
                     {
