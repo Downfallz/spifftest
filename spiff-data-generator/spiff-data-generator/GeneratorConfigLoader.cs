@@ -28,6 +28,9 @@ public static class GeneratorConfigLoader
         if (typeSection.GetValue<string>("OutputDir") is null)
             config.OutputDir = $"out/{typeFeuillet}";
 
+        // 4. Resolve to absolute path so downstream code works regardless
+        config.OutputDir = Path.GetFullPath(config.OutputDir);
+
         Randomizer.Seed = new Random(config.Seed);
         return config;
     }

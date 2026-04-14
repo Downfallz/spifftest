@@ -9,8 +9,9 @@ public static class ShellOpener
 
         try
         {
+            var fullPath = Path.GetFullPath(path);
             System.Diagnostics.Process.Start(
-                new System.Diagnostics.ProcessStartInfo(path){
+                new System.Diagnostics.ProcessStartInfo(fullPath){
                UseShellExecute = true
             });
         }
