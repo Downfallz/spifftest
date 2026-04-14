@@ -56,6 +56,8 @@ public static class ConsoleDataGenerator
                         var postAction = HandlePostGeneration(lastZip, lastOutputDir);
                         if (postAction == UiActions.Quit) return;
                         if (postAction == UiActions.NewSelection) goto newSelection;
+                        if (postAction == UiActions.ReloadConfig)
+                            ReloadConfigs(selectedTypes, configs);
                         continue;
 
                     case UiActions.OverrideParams:
@@ -67,6 +69,10 @@ public static class ConsoleDataGenerator
 
                     case UiActions.OpenConfig:
                         ShellOpener.Open(Constants.ConfigPath);
+                        continue;
+
+                    case UiActions.ReloadConfig:
+                        ReloadConfigs(selectedTypes, configs);
                         continue;
 
                     case UiActions.OpenLastZip:
@@ -134,6 +140,18 @@ public static class ConsoleDataGenerator
                     return action;
             }
         }
+    }
+
+    private static void ReloadConfigs(List<string> selectedTypes, Dictionary<string, GeneratorConfig> configs)
+    {
+        AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .SpinnerStyle(Style.Parse("cyan"))
+            .Start("[cyan]Rechargement des configurations...[/]", _ =>
+            {
+                foreach (var type in selectedTypes)
+                    configs[type] = GeneratorConfigLoader.Load(type);
+            });
     }
 
     private static void OpenLogFile(string? zipPath)

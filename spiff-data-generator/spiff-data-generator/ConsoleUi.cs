@@ -42,6 +42,7 @@ public static class ConsoleUi
             UiActions.Generate,
             UiActions.OverrideParams,
             UiActions.OpenConfig,
+            UiActions.ReloadConfig,
         };
         if (!string.IsNullOrEmpty(zip))
         {
@@ -72,6 +73,7 @@ public static class ConsoleUi
                     UiActions.OpenLastZip,
                     UiActions.OpenLog,
                     UiActions.OpenConfig,
+                    UiActions.ReloadConfig,
                     UiActions.Quit));
     }
 
